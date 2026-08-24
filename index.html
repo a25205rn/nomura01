@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今日の魚太郎</title>
+<style>
+  :root{
+    --indigo-900:#122436;
+    --indigo-800:#1a3a55;
+    --indigo-700:#254e70;
+    --indigo-100:#eaf1f6;
+    --paper:#faf7f1;
+    --white:#ffffff;
+    --accent:#b5562e;
+    --accent-dark:#8f4322;
+    --text:#1f2d38;
+    --muted:#6b7a86;
+    --border:#d8e0e6;
+    --success:#3f7d5c;
+    --success-bg:#e7f3ec;
+    --danger:#b64545;
+    --font-serif:"Yu Mincho","YuMincho","Hiragino Mincho ProN",serif;
+    --font-sans:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--font-sans);
+    color:var(--text);
+    background:var(--paper);
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:40px;
+  }
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;}
+
+  /* ---------- Header ---------- */
+  header.topbar{
+    position:sticky;top:0;z-index:50;
+    background:linear-gradient(135deg,var(--indigo-900),var(--indigo-800) 60%,var(--indigo-700));
+    color:var(--white);
+    padding:14px 20px;
+    box-shadow:0 2px 10px rgba(18,36,54,.25);
+    display:flex;flex-wrap:wrap;align-items:center;gap:18px;
+  }
+  .brand{
+    font-family:var(--font-serif);
+    font-size:22px;letter-spacing:.06em;font-weight:700;
+    white-space:nowrap;
+    margin-right:4px;
+  }
+  .brand small{display:block;font-family:var(--font-sans);font-size:10px;font-weight:400;letter-spacing:.14em;opacity:.75;}
+  .mode-tabs{display:flex;gap:6px;background:rgba(255,255,255,.08);padding:4px;border-radius:8px;}
+  .mode-tabs button{
+    border:none;background:transparent;color:rgba(255,255,255,.75);
+    padding:8px 16px;border-radius:6px;font-size:14px;font-weight:600;letter-spacing:.03em;
+    transition:background .15s,color .15s;
+  }
+  .mode-tabs button.active{background:var(--white);color:var(--indigo-900);}
+  .time-control{display:flex;align-items:center;gap:10px;flex:1;min-width:220px;}
+  .time-control label{font-size:12px;color:rgba(255,255,255,.8);white-space:nowrap;}
+  .time-control #timeLabel{font-family:var(--font-serif);font-size:17px;font-weight:700;color:#ffd9a8;min-width:52px;display:inline-block;}
+  .time-control input[type=range]{flex:1;accent-color:var(--accent);min-width:100px;}
+  .ai-toggle{display:flex;flex-direction:column;gap:4px;font-size:12px;color:rgba(255,255,255,.85);}
+  .ai-toggle label{display:flex;align-items:center;gap:6px;white-space:nowrap;}
+  .ai-toggle input[type=password]{
+    margin-top:2px;padding:5px 8px;border-radius:5px;border:1px solid rgba(255,255,255,.3);
+    background:rgba(255,255,255,.1);color:#fff;font-size:12px;width:190px;
+  }
+  .ai-toggle input[type=password]::placeholder{color:rgba(255,255,255,.5);}
+  .ai-note{font-size:10px;color:rgba(255,255,255,.55);}
+
+  main{max-width:1100px;margin:0 auto;padding:22px 18px 60px;}
+
+  /* ---------- Owner: subtabs ---------- */
+  .owner-subtabs{display:flex;gap:8px;margin-bottom:18px;border-bottom:1px solid var(--border);}
+  .subtab{
+    border:none;background:transparent;padding:10px 6px;margin-right:14px;
+    font-size:15px;font-weight:700;color:var(--muted);border-bottom:3px solid transparent;
+    display:flex;align-items:center;gap:8px;
+  }
+  .subtab.active{color:var(--indigo-900);border-bottom-color:var(--accent);}
+  .badge{
+    background:var(--accent);color:#fff;font-size:11px;font-weight:700;
+    border-radius:999px;min-width:18px;height:18px;padding:0 5px;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  .badge[hidden]{display:none;}
+
+  .panel{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px;}
+  .panel h2{font-family:var(--font-serif);font-size:17px;margin:0 0 14px;color:var(--indigo-900);}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--indigo-800);margin-bottom:6px;}
+  .field input[type=number],.field input[type=text],.field textarea,.field select{
+    width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:7px;font-size:14px;
+    background:var(--white);color:var(--text);
+  }
+  .field textarea{resize:vertical;min-height:64px;line-height:1.6;}
+  .row{display:flex;gap:14px;flex-wrap:wrap;}
+  .row .field{flex:1;min-width:140px;}
+
+  .fish-picker{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+  .fish-btn{
+    border:2px solid var(--border);background:var(--white);border-radius:10px;
+    padding:10px 16px;font-size:14px;font-weight:700;color:var(--indigo-800);
+    display:flex;align-items:center;gap:8px;transition:border-color .15s,background .15s;
+  }
+  .fish-btn:hover{border-color:var(--indigo-700);}
+  .fish-btn.selected{border-color:var(--accent);background:#fdf1ea;color:var(--accent-dark);}
+  .fish-icon{width:26px;height:18px;flex:none;}
+
+  .upload-row{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+  .upload-btn{
+    border:1px dashed var(--indigo-700);background:var(--indigo-100);color:var(--indigo-800);
+    padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;
+  }
+  .upload-status{font-size:13px;color:var(--muted);}
+  .upload-status.done{color:var(--success);font-weight:600;}
+
+  .btn{
+    border:none;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:700;
+    letter-spacing:.02em;transition:filter .15s,opacity .15s;
+  }
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-primary:hover{filter:brightness(1.06);}
+  .btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-secondary{background:var(--indigo-100);color:var(--indigo-900);}
+  .btn-ghost{background:transparent;color:var(--indigo-700);border:1px solid var(--border);}
+  .btn-danger{background:var(--danger);color:#fff;}
+  .btn-sm{padding:6px 12px;font-size:12px;}
+
+  .error-list{color:var(--danger);font-size:13px;margin:8px 0 0;padding:0;list-style:none;}
+  .error-list li{margin-bottom:2px;}
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--indigo-900);color:#fff;padding:12px 22px;border-radius:8px;
+    font-size:13px;box-shadow:0 6px 18px rgba(0,0,0,.2);z-index:200;
+    opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
+
+  .loading-overlay{
+    position:fixed;inset:0;background:rgba(18,36,54,.35);z-index:300;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .loading-box{
+    background:#fff;padding:26px 34px;border-radius:12px;text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,.2);
+  }
+  .spinner{
+    width:34px;height:34px;border-radius:50%;
+    border:3px solid var(--indigo-100);border-top-color:var(--accent);
+    margin:0 auto 14px;animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loading-box p{margin:0;font-size:14px;color:var(--indigo-800);font-weight:600;}
+
+  .ai-badge{
+    display:inline-block;font-size:11px;color:var(--muted);background:var(--indigo-100);
+    padding:3px 9px;border-radius:999px;font-weight:600;
+  }
+  .ai-badge.edited{background:var(--success-bg);color:var(--success);}
+  .fallback-note{font-size:11px;color:var(--danger);margin-left:8px;}
+
+  .proposal{border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:10px;background:#fdfcfa;}
+  .proposal-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
+  .proposal-head strong{font-size:14px;color:var(--indigo-900);}
+  .quick-badge{
+    font-size:10px;background:var(--accent);color:#fff;padding:2px 7px;border-radius:999px;font-weight:700;
+  }
+
+  .prep-checks{display:flex;flex-wrap:wrap;gap:14px;}
+  .prep-checks label{font-size:13px;display:flex;align-items:center;gap:6px;color:var(--text);}
+
+  .discount-grid{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;}
+  .discount-grid .field{max-width:160px;}
+  .discount-stage{font-size:12px;color:var(--muted);margin-bottom:4px;}
+
+  /* ---------- Waste bar ---------- */
+  .waste-bar{
+    position:sticky;top:64px;z-index:40;
+    background:var(--indigo-900);color:#fff;
+    padding:10px 18px;border-radius:10px;margin-bottom:18px;
+    font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    box-shadow:0 3px 10px rgba(0,0,0,.12);
+  }
+  .waste-bar .num{font-family:var(--font-serif);font-size:17px;color:#ffd9a8;}
+  .waste-bar .arrow{opacity:.6;}
+  .waste-bar .num.current{color:#a9e0c2;}
+
+  /* ---------- Listing cards ---------- */
+  .listings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;}
+  .card{
+    background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;
+    display:flex;flex-direction:column;
+  }
+  .card-photo{
+    background:linear-gradient(135deg,var(--indigo-100),#f4ece0);
+    height:110px;display:flex;align-items:center;justify-content:center;
+  }
+  .card-body{padding:16px;display:flex;flex-direction:column;gap:10px;flex:1;}
+  .card-title{display:flex;justify-content:space-between;align-items:baseline;}
+  .card-title h3{margin:0;font-family:var(--font-serif);font-size:19px;color:var(--indigo-900);}
+  .card-qty{font-size:12px;color:var(--muted);}
+  .card-comment{font-size:13px;line-height:1.7;color:var(--text);background:#fbf8f3;padding:10px 12px;border-radius:8px;border-left:3px solid var(--accent);}
+  .price-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .price-now{font-family:var(--font-serif);font-size:26px;font-weight:700;color:var(--accent-dark);}
+  .price-orig{font-size:13px;color:var(--muted);text-decoration:line-through;}
+  .price-tag{font-size:11px;background:var(--danger);color:#fff;padding:2px 7px;border-radius:5px;font-weight:700;}
+  .countdown{font-size:12px;color:var(--indigo-700);font-weight:600;}
+  .sold-out{font-size:13px;color:var(--muted);font-weight:700;}
+
+  details.proposals-acc{border-top:1px solid var(--border);padding-top:8px;}
+  details.proposals-acc summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--indigo-700);list-style:none;display:flex;align-items:center;gap:6px;}
+  details.proposals-acc summary::-webkit-details-marker{display:none;}
+  details.proposals-acc summary:before{content:"▸";transition:transform .15s;}
+  details.proposals-acc[open] summary:before{transform:rotate(90deg);}
+  .proposal-view{padding:8px 2px;font-size:12.5px;color:var(--text);border-bottom:1px dashed var(--border);}
+  .proposal-view:last-child{border-bottom:none;}
+  .proposal-view strong{color:var(--indigo-900);}
+
+  .prep-radio-group{display:flex;flex-direction:column;gap:6px;}
+  .prep-radio-group label{font-size:13px;display:flex;align-items:center;gap:7px;}
+
+  .pickup-select select{width:100%;}
+
+  .card-footer{margin-top:auto;padding-top:6px;}
+  .btn-full{width:100%;}
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(18,36,54,.45);z-index:400;
+    display:flex;align-items:center;justify-content:center;padding:16px;
+  }
+  .modal-box{
+    background:#fff;border-radius:14px;max-width:420px;width:100%;padding:26px;
+    box-shadow:0 20px 50px rgba(0,0,0,.3);
+  }
+  .modal-box h3{margin:0 0 14px;font-family:var(--font-serif);font-size:19px;color:var(--indigo-900);}
+  .modal-line{display:flex;justify-content:space-between;font-size:14px;padding:7px 0;border-bottom:1px solid var(--border);}
+  .modal-line span:first-child{color:var(--muted);}
+  .lock-note{
+    margin:14px 0;padding:12px 14px;background:#fdf1ea;border:1px solid #f0cbb2;border-radius:8px;
+    font-size:12.5px;color:var(--accent-dark);font-weight:600;line-height:1.6;
+  }
+  .modal-actions{display:flex;gap:10px;margin-top:18px;}
+  .modal-actions .btn{flex:1;}
+
+  .done-view{text-align:center;}
+  .res-number{font-family:var(--font-serif);font-size:38px;font-weight:700;color:var(--accent-dark);margin:10px 0;}
+  .done-msg{font-size:15px;color:var(--indigo-900);font-weight:600;margin-bottom:6px;}
+  .done-sub{font-size:13px;color:var(--muted);margin-bottom:20px;}
+
+  /* ---------- Reservations table ---------- */
+  .res-row{
+    display:flex;align-items:center;gap:14px;padding:12px 14px;border:1px solid var(--border);
+    border-radius:10px;margin-bottom:10px;background:#fff;flex-wrap:wrap;
+  }
+  .res-row.ready{background:var(--success-bg);border-color:#bfe0cd;}
+  .res-time{font-family:var(--font-serif);font-size:18px;font-weight:700;color:var(--indigo-900);min-width:64px;}
+  .res-name{font-size:13px;color:var(--text);min-width:70px;}
+  .res-fish{font-size:13px;font-weight:700;color:var(--indigo-800);min-width:60px;}
+  .res-prep{
+    font-size:12px;font-weight:700;background:var(--accent);color:#fff;padding:4px 10px;border-radius:999px;
+  }
+  .res-num{font-size:11px;color:var(--muted);margin-left:auto;}
+  .empty-note{color:var(--muted);font-size:13px;padding:20px 4px;text-align:center;}
+
+  @keyframes slideIn{from{opacity:0;transform:translateX(-16px);}to{opacity:1;transform:translateX(0);}}
+  .new-slide{animation:slideIn .5s ease;}
+  @keyframes bump{0%{transform:scale(1);}35%{transform:scale(1.4);color:var(--accent);}100%{transform:scale(1);}}
+  .bump{animation:bump .55s ease;}
+
+  @media (max-width:600px){
+    header.topbar{padding:12px 14px;gap:10px;}
+    .brand{font-size:19px;}
+    .waste-bar{top:96px;font-size:13px;}
+    .modal-box{padding:20px;}
+    .res-num{margin-left:0;}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">今日の魚太郎<small>SHOTENGAI FISH STAND</small></div>
+  <nav class="mode-tabs">
+    <button type="button" data-mode="owner" class="tab active">店主モード</button>
+    <button type="button" data-mode="customer" class="tab">客モード</button>
+  </nav>
+  <div class="time-control">
+    <label>現在時刻</label>
+    <span id="timeLabel">15:00</span>
+    <input type="range" id="timeSlider" min="900" max="1200" step="5" value="900">
+  </div>
+  <div class="ai-toggle">
+    <label><input type="checkbox" id="liveModeToggle"> ライブモード（Anthropic API接続）</label>
+    <input type="password" id="apiKeyInput" placeholder="APIキーを入力（sk-ant-...）" style="display:none">
+    <span class="ai-note" id="aiModeNote">デモモード：あらかじめ用意した文章から生成演出をします</span>
+  </div>
+</header>
+
+<main>
+  <!-- ============ OWNER VIEW ============ -->
+  <section id="ownerView" class="view">
+    <div class="owner-subtabs">
+      <button type="button" class="subtab active" data-sub="register">入荷登録</button>
+      <button type="button" class="subtab" data-sub="reservations">予約一覧 <span id="resBadge" class="badge" hidden>0</span></button>
+    </div>
+
+    <!-- 入荷登録 -->
+    <div id="registerPanel">
+      <div class="panel">
+        <h2>魚種を選ぶ</h2>
+        <div class="upload-row">
+          <label class="upload-btn">
+            写真をアップロード（判定はダミー）
+            <input type="file" id="photoUpload" accept="image/*" style="display:none">
+          </label>
+          <span id="uploadStatus" class="upload-status"></span>
+        </div>
+        <div class="fish-picker" id="fishPicker"></div>
+
+        <div class="row">
+          <div class="field">
+            <label>数量</label>
+            <input type="number" id="qtyInput" min="0" value="8">
+          </div>
+          <div class="field">
+            <label>仕入れ値（円/尾）</label>
+            <input type="number" id="costInput" min="0" value="280">
+          </div>
+          <div class="field">
+            <label>希望売価（円/尾）</label>
+            <input type="number" id="priceInput" min="0" value="480">
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="generateBtn">品書きを作る</button>
+        <ul class="error-list" id="registerErrors"></ul>
+      </div>
+
+      <div class="panel" id="previewPanel" hidden>
+        <h2>生成された品書き</h2>
+        <div style="margin-bottom:10px;">
+          <span class="ai-badge" id="aiBadge">魚太郎AIが下書きしました</span>
+          <span class="fallback-note" id="fallbackNote" hidden></span>
+        </div>
+
+        <div class="field">
+          <label>店主の一言</label>
+          <textarea id="commentInput"></textarea>
+        </div>
+
+        <div class="field">
+          <label>調理提案（3案）</label>
+          <div id="proposalsList"></div>
+        </div>
+
+        <div class="field">
+          <label>下処理オプション（客に提示する項目）</label>
+          <div class="prep-checks" id="prepChecks"></div>
+        </div>
+
+        <div class="field">
+          <label>値下げスケジュール</label>
+          <div class="discount-grid">
+            <div class="field">
+              <div class="discount-stage">定価（15:00〜17:59）</div>
+              <input type="text" value="100%" disabled>
+            </div>
+            <div class="field">
+              <div class="discount-stage">18時以降</div>
+              <input type="number" id="eveningPct" min="0" max="90" value="20">%
+            </div>
+            <div class="field">
+              <div class="discount-stage">閉店1時間前（19時〜）</div>
+              <input type="number" id="closingPct" min="0" max="90" value="40">%
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="publishBtn">公開する</button>
+      </div>
+    </div>
+
+    <!-- 予約一覧 -->
+    <div id="reservationsPanel" class="panel" hidden>
+      <h2>予約一覧（受け取り時刻順）</h2>
+      <div id="reservationsList"></div>
+    </div>
+  </section>
+
+  <!-- ============ CUSTOMER VIEW ============ -->
+  <section id="customerView" class="view" hidden>
+    <div class="waste-bar">
+      本日の廃棄予定：<span class="num" id="wasteBaseNum">0</span>点
+      <span class="arrow">→</span>
+      予約により <span class="num current" id="wasteCurrentNum">0</span>点に減少
+    </div>
+    <div class="listings-grid" id="listingsGrid"></div>
+  </section>
+</main>
+
+<div id="modalRoot"></div>
+<div id="toast" class="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   DATA
+   ========================================================= */
+const FISH_DATA = {
+  aji: {
+    name:"アジ",
+    ownerComment:"今朝、九十九里から入ったアジです。脂の乗りはそこそこですが身がしっかりしていて、刺身でも塩焼きでもいける一本。目の澄み具合を見てもらえればわかりますが、鮮度は太鼓判押します。",
+    proposals:[
+      {title:"アジの塩焼き", desc:"下処理さえしておけば、フライパンひとつで15分。塩を振って中火で皮目からじっくり、大根おろしがあれば十分です。平日の夜でも無理なく作れます。", quick15:true},
+      {title:"アジフライ", desc:"衣をつけて揚げるだけですが、身が厚いので揚げすぎ注意。中まで火が通ればふわっと仕上がります。休みの日にビールと一緒にどうぞ。", quick15:false},
+      {title:"アジの南蛮漬け", desc:"揚げてから漬けるので少し手間はかかりますが、冷蔵庫で2〜3日もちます。作り置きしたい人にはこれが一番です。", quick15:false}
+    ],
+    prepOptions:["そのまま","三枚おろし","内臓処理","下味"]
+  },
+  saba: {
+    name:"サバ",
+    ownerComment:"銚子沖のサバ、今日は脂がよく乗ってます。光り物なので鮮度が命、今日中に召し上がるのがおすすめです。〆サバにするなら早めに仕込んでください。",
+    proposals:[
+      {title:"サバの塩焼き", desc:"フライパンで皮目をパリッと焼くだけ。脂が出るので油はひかなくて大丈夫です。15分あれば十分、平日でも作れます。", quick15:true},
+      {title:"サバの味噌煮", desc:"煮る時間はかかりますが、味が染みて冷めても美味しい。多めに作って翌日のお弁当にもどうぞ。", quick15:false},
+      {title:"しめさば", desc:"酢で〆るひと手間はありますが、日本酒によく合います。時間がある週末にぜひ。", quick15:false}
+    ],
+    prepOptions:["そのまま","三枚おろし","内臓処理","下味"]
+  },
+  kamasu: {
+    name:"カマス",
+    ownerComment:"地物のカマスが入りました。小ぶりですが身は締まっていて上品な味。干物にするお客さんも多いですが、今日は活きがいいので焼きで食べてほしいです。",
+    proposals:[
+      {title:"カマスの塩焼き", desc:"小骨は少ない魚なので下処理さえ済ませれば焼くだけ。フライパンで15分、皮目をパリッとさせるのがコツです。", quick15:true},
+      {title:"カマスの一夜干し風ソテー", desc:"軽く塩を振って少し置いてから焼くと、干物のような旨味が出ます。時間があるときにどうぞ。", quick15:false},
+      {title:"カマスの煮付け", desc:"甘辛く煮るとご飯が進みます。骨まで柔らかくなるまでじっくり火を入れてください。", quick15:false}
+    ],
+    prepOptions:["そのまま","三枚おろし","内臓処理","下味"]
+  },
+  isaki: {
+    name:"イサキ",
+    ownerComment:"旬のイサキです。今の時期は特に脂が乗っていて、白身なのにコクがある。刺身も焼きもどちらも美味しい万能選手です。",
+    proposals:[
+      {title:"イサキの塩焼き", desc:"下処理済みならフライパンで15分。皮に脂がのっているので、皮目から焼くと香ばしくなります。", quick15:true},
+      {title:"イサキの刺身", desc:"鮮度がいいので生でどうぞ。三枚おろしにしておくので、切るだけで食卓に出せます。", quick15:false},
+      {title:"イサキの潮汁", desc:"アラも一緒に煮出すと出汁が出て絶品です。骨についた身も美味しいので捨てずに使ってください。", quick15:false}
+    ],
+    prepOptions:["そのまま","三枚おろし","内臓処理","下味"]
+  },
+  surumeika: {
+    name:"スルメイカ",
+    ownerComment:"スルメイカ、今日はワタも綺麗で活きがいいです。刺身にしても焼いても美味しいですが、下処理は面倒なのでうちで済ませておきます。",
+    proposals:[
+      {title:"イカの醤油バター炒め", desc:"フライパンで炒めるだけ、15分あれば十分です。バターと醤油の香りで白いご飯が進みます。", quick15:true},
+      {title:"イカの刺身", desc:"下処理をこちらでしておけば、切るだけ。新鮮なうちに生で食べるのが一番です。", quick15:false},
+      {title:"イカ飯", desc:"少し手間がかかりますが、お米を詰めて煮るので満足感があります。時間がある日にぜひ挑戦してほしい一品。", quick15:false}
+    ],
+    prepOptions:["そのまま","三枚おろし","内臓処理","下味"]
+  }
+};
+const FISH_ORDER = ["aji","saba","kamasu","isaki","surumeika"];
+const LOADING_MESSAGES = ["目利き中…","魚太郎が考えています…","今朝の水揚げを確認中…"];
+const CUSTOMER_NAMES = ["田中様","佐藤様","鈴木様","高橋様","伊藤様","渡辺様","山本様","中村様","小林様","加藤様"];
+
+const EVENING_TIME=1080;  // 18:00
+const CLOSING_HOUR_TIME=1140; // 19:00 (closing 1h before)
+const CLOSE_TIME=1200; // 20:00
+
+/* =========================================================
+   STATE
+   ========================================================= */
+let state = {
+  currentTime: 900,
+  aiMode: "demo",
+  apiKey: "",
+  mode: "owner",
+  ownerSub: "register",
+  listings: [],
+  reservations: [],
+  reservationSeq: 1,
+  listingSeq: 1,
+  wasteBase: 0
+};
+
+let selectedFish = null;
+let draft = null;
+let renderedReservationIds = new Set();
+
+/* =========================================================
+   UTILS
+   ========================================================= */
+function $(sel){ return document.querySelector(sel); }
+function $all(sel){ return Array.from(document.querySelectorAll(sel)); }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function pad2(n){ return String(n).padStart(2,"0"); }
+function fmtTime(mins){ return pad2(Math.floor(mins/60)) + ":" + pad2(mins%60); }
+function fishIconSVG(color){
+  color = color || "#1a3a55";
+  return '<svg class="fish-icon" viewBox="0 0 60 36" xmlns="http://www.w3.org/2000/svg">'
+    + '<path d="M4 18 C10 4, 34 4, 44 12 L56 6 L52 18 L56 30 L44 24 C34 32, 10 32, 4 18 Z" fill="none" stroke="'+color+'" stroke-width="2.4" stroke-linejoin="round"/>'
+    + '<circle cx="14" cy="15" r="1.6" fill="'+color+'"/>'
+    + '</svg>';
+}
+function showToast(msg){
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=>t.classList.remove("show"), 2200);
+}
+function bump(el){
+  if(!el) return;
+  el.classList.remove("bump");
+  void el.offsetWidth;
+  el.classList.add("bump");
+}
+
+/* =========================================================
+   HEADER: mode tabs / time slider / ai toggle
+   ========================================================= */
+$all(".mode-tabs .tab").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    state.mode = btn.dataset.mode;
+    $all(".mode-tabs .tab").forEach(b=>b.classList.toggle("active", b===btn));
+    $("#ownerView").hidden = state.mode !== "owner";
+    $("#customerView").hidden = state.mode !== "customer";
+    if(state.mode === "customer") renderListings();
+    if(state.mode === "owner") renderOwnerSub();
+  });
+});
+
+const timeSlider = $("#timeSlider");
+timeSlider.addEventListener("input", ()=>{
+  state.currentTime = Number(timeSlider.value);
+  $("#timeLabel").textContent = fmtTime(state.currentTime);
+  renderListings();
+});
+$("#timeLabel").textContent = fmtTime(state.currentTime);
+
+$("#liveModeToggle").addEventListener("change", (e)=>{
+  state.aiMode = e.target.checked ? "live" : "demo";
+  $("#apiKeyInput").style.display = e.target.checked ? "inline-block" : "none";
+  $("#aiModeNote").textContent = e.target.checked
+    ? "ライブモード：Anthropic APIを呼び出します（失敗時は自動でデモ表示）"
+    : "デモモード：あらかじめ用意した文章から生成演出をします";
+});
+$("#apiKeyInput").addEventListener("input", (e)=>{ state.apiKey = e.target.value; });
+
+/* =========================================================
+   OWNER: subtabs
+   ========================================================= */
+$all(".subtab").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    state.ownerSub = btn.dataset.sub;
+    $all(".subtab").forEach(b=>b.classList.toggle("active", b===btn));
+    renderOwnerSub();
+  });
+});
+function renderOwnerSub(){
+  $("#registerPanel").hidden = state.ownerSub !== "register";
+  $("#reservationsPanel").hidden = state.ownerSub !== "reservations";
+  if(state.ownerSub === "reservations"){
+    renderReservations();
+    state.reservations.forEach(r=>r.seen = true);
+    updateResBadge();
+  }
+}
+
+/* =========================================================
+   OWNER: fish picker
+   ========================================================= */
+const fishPicker = $("#fishPicker");
+FISH_ORDER.forEach(key=>{
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "fish-btn";
+  btn.dataset.fish = key;
+  btn.innerHTML = fishIconSVG() + "<span>" + FISH_DATA[key].name + "</span>";
+  btn.addEventListener("click", ()=> selectFish(key));
+  fishPicker.appendChild(btn);
+});
+function selectFish(key){
+  selectedFish = key;
+  $all(".fish-btn").forEach(b=>b.classList.toggle("selected", b.dataset.fish === key));
+}
+
+$("#photoUpload").addEventListener("change", async (e)=>{
+  if(!e.target.files || !e.target.files.length) return;
+  const statusEl = $("#uploadStatus");
+  statusEl.classList.remove("done");
+  statusEl.textContent = "判定中…";
+  await sleep(600);
+  selectFish("aji");
+  statusEl.textContent = "アジと判定しました";
+  statusEl.classList.add("done");
+});
+
+/* =========================================================
+   OWNER: generation
+   ========================================================= */
+function showLoading(msg){
+  const ov = document.createElement("div");
+  ov.className = "loading-overlay";
+  ov.id = "loadingOverlay";
+  ov.innerHTML = '<div class="loading-box"><div class="spinner"></div><p>'+msg+'</p></div>';
+  document.body.appendChild(ov);
+}
+function hideLoading(){
+  const ov = $("#loadingOverlay");
+  if(ov) ov.remove();
+}
+
+async function callAnthropicAPI(fishType, apiKey){
+  const fishName = FISH_DATA[fishType].name;
+  const prompt = "あなたは商店街にある鮮魚店「魚太郎」の3代目店主です。今日入荷した「"+fishName+"」について、"
+    + "以下のJSON形式のみを出力してください。前置きや説明文は一切含めないでください。\n\n"
+    + '{"ownerComment":"産地・脂のり・目利きコメントを含む、生活感のある一言(80字前後)",'
+    + '"proposals":[{"title":"料理名","desc":"作り方の説明(60〜100字)","quick15":true},'
+    + '{"title":"料理名","desc":"説明","quick15":false},{"title":"料理名","desc":"説明","quick15":false}]}\n\n'
+    + "proposalsのうち1つは「平日夜15分・フライパンのみ」で作れる内容にし、quick15をtrueにしてください。";
+
+  const controller = new AbortController();
+  const timer = setTimeout(()=>controller.abort(), 7000);
+  let res;
+  try{
+    res = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{
+        "content-type":"application/json",
+        "x-api-key": apiKey,
+        "anthropic-version":"2023-06-01",
+        "anthropic-dangerous-direct-browser-access":"true"
+      },
+      body: JSON.stringify({
+        model:"claude-sonnet-4-5-20250929",
+        max_tokens:700,
+        messages:[{role:"user", content:prompt}]
+      }),
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+  if(!res.ok) throw new Error("API error " + res.status);
+  const data = await res.json();
+  const text = (data.content && data.content[0] && data.content[0].text) || "";
+  const m = text.match(/\{[\s\S]*\}/);
+  if(!m) throw new Error("parse error");
+  const parsed = JSON.parse(m[0]);
+  if(!parsed.ownerComment || !Array.isArray(parsed.proposals)) throw new Error("shape error");
+  return {
+    ownerComment: parsed.ownerComment,
+    proposals: parsed.proposals,
+    prepOptions: FISH_DATA[fishType].prepOptions.slice()
+  };
+}
+
+async function generateListingContent(fishType){
+  showLoading(pick(LOADING_MESSAGES));
+  if(state.aiMode === "live" && state.apiKey){
+    try{
+      const result = await callAnthropicAPI(fishType, state.apiKey);
+      hideLoading();
+      return { data: result, source:"live" };
+    }catch(err){
+      hideLoading();
+      showLoading(pick(LOADING_MESSAGES));
+      await sleep(500);
+      hideLoading();
+      return { data: clone(FISH_DATA[fishType]), source:"fallback" };
+    }
+  } else {
+    await sleep(800);
+    hideLoading();
+    return { data: clone(FISH_DATA[fishType]), source:"demo" };
+  }
+}
+
+$("#generateBtn").addEventListener("click", async ()=>{
+  const errs = [];
+  const qty = Number($("#qtyInput").value);
+  const sellPrice = Number($("#priceInput").value);
+  if(!selectedFish) errs.push("魚種を選択してください");
+  if(!qty || qty <= 0) errs.push("数量を1以上で入力してください");
+  if(!sellPrice || sellPrice <= 0) errs.push("希望売価を入力してください");
+
+  const errBox = $("#registerErrors");
+  errBox.innerHTML = "";
+  if(errs.length){
+    errs.forEach(m=>{ const li=document.createElement("li"); li.textContent=m; errBox.appendChild(li); });
+    return;
+  }
+
+  const btn = $("#generateBtn");
+  btn.disabled = true;
+  const result = await generateListingContent(selectedFish);
+  btn.disabled = false;
+
+  draft = {
+    fishType: selectedFish,
+    qty: qty,
+    costPrice: Number($("#costInput").value) || 0,
+    sellPrice: sellPrice,
+    ownerComment: result.data.ownerComment,
+    commentEdited: false,
+    proposals: clone(result.data.proposals),
+    prepOptions: result.data.prepOptions.slice(),
+    discount: { eveningPct: 20, closingPct: 40 },
+    fallback: result.source === "fallback"
+  };
+  renderPreview();
+});
+
+function renderPreview(){
+  $("#previewPanel").hidden = false;
+  const badge = $("#aiBadge");
+  badge.textContent = "魚太郎AIが下書きしました";
+  badge.classList.remove("edited");
+  $("#fallbackNote").hidden = !draft.fallback;
+  $("#fallbackNote").textContent = draft.fallback ? "（ネットに接続できなかったためデモの文章を表示しています）" : "";
+
+  const commentInput = $("#commentInput");
+  commentInput.value = draft.ownerComment;
+  commentInput.oninput = ()=>{
+    draft.ownerComment = commentInput.value;
+    if(!draft.commentEdited){
+      draft.commentEdited = true;
+      badge.textContent = "魚太郎さんが手を入れました";
+      badge.classList.add("edited");
+    }
+  };
+
+  const list = $("#proposalsList");
+  list.innerHTML = "";
+  draft.proposals.forEach((p, idx)=>{
+    const box = document.createElement("div");
+    box.className = "proposal";
+    box.innerHTML = '<div class="proposal-head"><strong>'+p.title+'</strong>'
+      + (p.quick15 ? '<span class="quick-badge">平日夜15分・フライパンのみ</span>' : '')
+      + '</div>';
+    const ta = document.createElement("textarea");
+    ta.value = p.desc;
+    ta.addEventListener("input", ()=>{ draft.proposals[idx].desc = ta.value; });
+    box.appendChild(ta);
+    list.appendChild(box);
+  });
+
+  const allPrep = ["そのまま","三枚おろし","内臓処理","下味"];
+  const prepBox = $("#prepChecks");
+  prepBox.innerHTML = "";
+  allPrep.forEach(opt=>{
+    const label = document.createElement("label");
+    const checked = draft.prepOptions.includes(opt);
+    label.innerHTML = '<input type="checkbox" value="'+opt+'" '+(checked?"checked":"")+'> '+opt;
+    label.querySelector("input").addEventListener("change", (e)=>{
+      if(e.target.checked){
+        if(!draft.prepOptions.includes(opt)) draft.prepOptions.push(opt);
+      } else {
+        draft.prepOptions = draft.prepOptions.filter(o=>o!==opt);
+      }
+    });
+    prepBox.appendChild(label);
+  });
+
+  $("#eveningPct").value = draft.discount.eveningPct;
+  $("#closingPct").value = draft.discount.closingPct;
+  $("#eveningPct").oninput = (e)=>{ draft.discount.eveningPct = Number(e.target.value)||0; };
+  $("#closingPct").oninput = (e)=>{ draft.discount.closingPct = Number(e.target.value)||0; };
+}
+
+$("#publishBtn").addEventListener("click", ()=>{
+  if(!draft) return;
+  if(draft.prepOptions.length === 0){
+    showToast("下処理オプションを1つ以上選択してください");
+    return;
+  }
+  const listing = {
+    id: "L" + (state.listingSeq++),
+    fishType: draft.fishType,
+    qty: draft.qty,
+    remainingQty: draft.qty,
+    costPrice: draft.costPrice,
+    sellPrice: draft.sellPrice,
+    ownerComment: draft.ownerComment,
+    proposals: draft.proposals,
+    prepOptions: draft.prepOptions,
+    discount: draft.discount,
+    published: true
+  };
+  state.listings.push(listing);
+  state.wasteBase += listing.qty;
+  updateWasteBar();
+  showToast(FISH_DATA[listing.fishType].name + "を公開しました。客モードで確認できます。");
+  resetRegisterForm();
+});
+
+function resetRegisterForm(){
+  draft = null;
+  selectedFish = null;
+  $all(".fish-btn").forEach(b=>b.classList.remove("selected"));
+  $("#qtyInput").value = 8;
+  $("#costInput").value = 280;
+  $("#priceInput").value = 480;
+  $("#previewPanel").hidden = true;
+  $("#registerErrors").innerHTML = "";
+  $("#uploadStatus").textContent = "";
+  $("#uploadStatus").classList.remove("done");
+  $("#photoUpload").value = "";
+}
+
+/* =========================================================
+   PRICING
+   ========================================================= */
+function currentPct(listing){
+  if(state.currentTime >= CLOSING_HOUR_TIME) return listing.discount.closingPct;
+  if(state.currentTime >= EVENING_TIME) return listing.discount.eveningPct;
+  return 0;
+}
+function currentPrice(listing){
+  const pct = currentPct(listing);
+  return Math.round(listing.sellPrice * (1 - pct/100));
+}
+function nextDropInfo(listing){
+  if(state.currentTime < EVENING_TIME){
+    return { hasNext:true, at: EVENING_TIME, label:"18:00に" + listing.discount.eveningPct + "%引きに変わります" };
+  }
+  if(state.currentTime < CLOSING_HOUR_TIME){
+    return { hasNext:true, at: CLOSING_HOUR_TIME, label:"19:00に" + listing.discount.closingPct + "%引きに変わります" };
+  }
+  return { hasNext:false, at:null, label:"本日の最終価格です" };
+}
+
+/* =========================================================
+   WASTE BAR
+   ========================================================= */
+function updateWasteBar(){
+  const current = Math.max(0, state.wasteBase - state.reservations.length);
+  $("#wasteBaseNum").textContent = state.wasteBase;
+  const curEl = $("#wasteCurrentNum");
+  const changed = curEl.textContent !== String(current);
+  curEl.textContent = current;
+  if(changed) bump(curEl);
+}
+
+/* =========================================================
+   CUSTOMER VIEW: listings
+   ========================================================= */
+function buildPickupOptions(){
+  const opts = [];
+  let t = Math.ceil(state.currentTime / 30) * 30;
+  if(t <= state.currentTime) t += 30;
+  while(t <= CLOSE_TIME - 30){
+    opts.push(t);
+    t += 30;
+  }
+  return opts;
+}
+
+function renderListings(){
+  updateWasteBar();
+  const grid = $("#listingsGrid");
+  grid.innerHTML = "";
+
+  if(state.listings.length === 0){
+    grid.innerHTML = '<div class="empty-note">本日の入荷はまだ登録されていません（店主モードで登録してください）</div>';
+    return;
+  }
+
+  state.listings.forEach(listing=>{
+    const fish = FISH_DATA[listing.fishType];
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const price = currentPrice(listing);
+    const pct = currentPct(listing);
+    const drop = nextDropInfo(listing);
+    const soldOut = listing.remainingQty <= 0;
+
+    let priceHtml;
+    if(soldOut){
+      priceHtml = '<div class="sold-out">本日分は終了しました</div>';
+    } else {
+      priceHtml = '<div class="price-row">'
+        + '<span class="price-now">¥' + price + '</span>'
+        + (pct > 0 ? '<span class="price-orig">¥' + listing.sellPrice + '</span><span class="price-tag">' + pct + '%引き</span>' : '')
+        + '</div>'
+        + '<div class="countdown">' + drop.label + '</div>';
+    }
+
+    card.innerHTML =
+      '<div class="card-photo">' + fishIconSVG("#1a3a55") + '</div>'
+      + '<div class="card-body">'
+        + '<div class="card-title"><h3>' + fish.name + '</h3><span class="card-qty">残り ' + listing.remainingQty + ' 尾</span></div>'
+        + '<div class="card-comment">' + escapeHtml(listing.ownerComment) + '</div>'
+        + priceHtml
+        + '<details class="proposals-acc"><summary>調理提案を見る（3案）</summary><div class="proposals-body"></div></details>'
+        + (soldOut ? '' :
+          '<div class="field prep-radio-wrap"><label>下処理</label><div class="prep-radio-group"></div></div>'
+          + '<div class="field pickup-select"><label>受け取り希望時間</label><select></select></div>'
+          + '<div class="card-footer"><button type="button" class="btn btn-primary btn-full reserve-btn">取り置きする</button></div>'
+        )
+      + '</div>';
+
+    const propBody = card.querySelector(".proposals-body");
+    listing.proposals.forEach(p=>{
+      const d = document.createElement("div");
+      d.className = "proposal-view";
+      d.innerHTML = '<strong>' + escapeHtml(p.title) + '</strong>'
+        + (p.quick15 ? ' <span class="quick-badge">平日夜15分</span>' : '')
+        + '<div>' + escapeHtml(p.desc) + '</div>';
+      propBody.appendChild(d);
+    });
+
+    if(!soldOut){
+      const prepGroup = card.querySelector(".prep-radio-group");
+      listing.prepOptions.forEach((opt, i)=>{
+        const label = document.createElement("label");
+        const inputName = "prep-" + listing.id;
+        label.innerHTML = '<input type="radio" name="' + inputName + '" value="' + opt + '" ' + (i===0?"checked":"") + '> ' + opt;
+        prepGroup.appendChild(label);
+      });
+
+      const select = card.querySelector(".pickup-select select");
+      const pickupOpts = buildPickupOptions();
+      if(pickupOpts.length === 0){
+        select.innerHTML = '<option value="">本日の受け取り枠は終了しました</option>';
+        select.disabled = true;
+        card.querySelector(".reserve-btn").disabled = true;
+      } else {
+        pickupOpts.forEach(t=>{
+          const o = document.createElement("option");
+          o.value = t;
+          o.textContent = fmtTime(t);
+          select.appendChild(o);
+        });
+      }
+
+      card.querySelector(".reserve-btn").addEventListener("click", ()=>{
+        const prepChoice = card.querySelector('input[name="prep-' + listing.id + '"]:checked');
+        const pickupVal = select.value;
+        if(!prepChoice){ showToast("下処理を選択してください"); return; }
+        if(!pickupVal){ showToast("受け取り希望時間を選択してください"); return; }
+        openReserveModal(listing, prepChoice.value, Number(pickupVal));
+      });
+    }
+
+    grid.appendChild(card);
+  });
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* =========================================================
+   RESERVATION MODAL
+   ========================================================= */
+function openReserveModal(listing, prepChoice, pickupTime){
+  const fish = FISH_DATA[listing.fishType];
+  const price = currentPrice(listing);
+  const root = $("#modalRoot");
+  root.innerHTML =
+    '<div class="modal-overlay" id="modalOverlay">'
+      + '<div class="modal-box">'
+        + '<h3>この内容で取り置きしますか？</h3>'
+        + '<div class="modal-line"><span>魚種</span><span>' + fish.name + '</span></div>'
+        + '<div class="modal-line"><span>下処理</span><span>' + prepChoice + 'にしておきます</span></div>'
+        + '<div class="modal-line"><span>受け取り時刻</span><span>' + fmtTime(pickupTime) + '</span></div>'
+        + '<div class="modal-line"><span>現在価格</span><span>¥' + price + '</span></div>'
+        + '<div class="lock-note">この価格で確保されます（以降値下がりしても変更ありません）。先に予約するほど確実に受け取れますが、待てばもっと安くなるかもしれません。</div>'
+        + '<div class="modal-actions">'
+          + '<button type="button" class="btn btn-ghost" id="modalCancel">キャンセル</button>'
+          + '<button type="button" class="btn btn-primary" id="modalConfirm">この内容で確定</button>'
+        + '</div>'
+      + '</div>'
+    + '</div>';
+
+  $("#modalCancel").addEventListener("click", closeModal);
+  $("#modalConfirm").addEventListener("click", ()=>{
+    confirmReservation(listing, prepChoice, pickupTime, price);
+  });
+}
+
+function confirmReservation(listing, prepChoice, pickupTime, price){
+  const reservation = {
+    id: "R" + (state.reservationSeq),
+    number: "#" + String(state.reservationSeq).padStart(4,"0"),
+    fishType: listing.fishType,
+    prepChoice: prepChoice,
+    pickupTime: pickupTime,
+    lockedPrice: price,
+    customerName: pick(CUSTOMER_NAMES),
+    status: "pending",
+    seen: false
+  };
+  state.reservationSeq++;
+  state.reservations.push(reservation);
+  listing.remainingQty = Math.max(0, listing.remainingQty - 1);
+
+  if(state.mode === "owner" && state.ownerSub === "reservations"){
+    renderReservations();
+    reservation.seen = true;
+    updateResBadge();
+  } else {
+    updateResBadge();
+  }
+
+  updateWasteBar();
+
+  const root = $("#modalRoot");
+  root.innerHTML =
+    '<div class="modal-overlay" id="modalOverlay">'
+      + '<div class="modal-box done-view">'
+        + '<div class="done-msg">取り置きが完了しました</div>'
+        + '<div class="res-number">' + reservation.number + '</div>'
+        + '<div class="done-sub">' + fmtTime(pickupTime) + 'に魚太郎でお待ちしています</div>'
+        + '<button type="button" class="btn btn-primary btn-full" id="modalClose">閉じる</button>'
+      + '</div>'
+    + '</div>';
+  $("#modalClose").addEventListener("click", ()=>{
+    closeModal();
+    renderListings();
+  });
+}
+
+function closeModal(){
+  $("#modalRoot").innerHTML = "";
+}
+
+/* =========================================================
+   OWNER: reservations list
+   ========================================================= */
+function updateResBadge(){
+  const count = state.reservations.filter(r=>!r.seen).length;
+  const badge = $("#resBadge");
+  badge.textContent = count;
+  badge.hidden = count === 0;
+}
+
+function renderReservations(){
+  const container = $("#reservationsList");
+  container.innerHTML = "";
+  if(state.reservations.length === 0){
+    container.innerHTML = '<div class="empty-note">まだ予約はありません</div>';
+    return;
+  }
+  const sorted = state.reservations.slice().sort((a,b)=>a.pickupTime - b.pickupTime);
+  sorted.forEach(r=>{
+    const fish = FISH_DATA[r.fishType];
+    const isNew = !renderedReservationIds.has(r.id);
+    renderedReservationIds.add(r.id);
+    const row = document.createElement("div");
+    row.className = "res-row" + (r.status === "ready" ? " ready" : "") + (isNew ? " new-slide" : "");
+    row.innerHTML =
+      '<div class="res-time">' + fmtTime(r.pickupTime) + '</div>'
+      + '<div class="res-name">' + r.customerName + '</div>'
+      + '<div class="res-fish">' + fish.name + '</div>'
+      + '<div class="res-prep">' + r.prepChoice + '</div>'
+      + '<div class="res-num">' + r.number + '</div>'
+      + '<button type="button" class="btn btn-sm ' + (r.status==="ready" ? "btn-secondary" : "btn-primary") + '">'
+        + (r.status === "ready" ? "準備完了 済" : "準備完了")
+      + '</button>';
+    row.querySelector("button").addEventListener("click", ()=>{
+      r.status = r.status === "ready" ? "pending" : "ready";
+      renderReservations();
+    });
+    container.appendChild(row);
+  });
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+updateWasteBar();
+renderOwnerSub();
+renderListings();
+
+})();
+</script>
+</body>
+</html>
