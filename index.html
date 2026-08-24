@@ -272,6 +272,42 @@
   @keyframes bump{0%{transform:scale(1);}35%{transform:scale(1.4);color:var(--accent);}100%{transform:scale(1);}}
   .bump{animation:bump .55s ease;}
 
+  /* ---------- Pricing mode (owner) ---------- */
+  .pricing-mode-switch{
+    display:flex;gap:6px;background:var(--indigo-100);padding:4px;border-radius:8px;
+    margin-bottom:14px;width:fit-content;max-width:100%;flex-wrap:wrap;
+  }
+  .pmode{
+    border:none;background:transparent;color:var(--indigo-700);
+    padding:8px 14px;border-radius:6px;font-size:13px;font-weight:600;
+    transition:background .15s,color .15s;
+  }
+  .pmode.active{background:var(--white);color:var(--indigo-900);box-shadow:0 1px 3px rgba(18,36,54,.18);}
+  .pricing-grid{display:grid;grid-template-columns:1fr;gap:16px;}
+  .pricing-grid input[type=range]{width:100%;margin:0;}
+  .slider-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;color:var(--muted);margin-bottom:4px;}
+  .slider-head .val{font-family:var(--font-serif);font-size:16px;font-weight:700;color:var(--indigo-900);white-space:nowrap;}
+  .slider-hint{font-size:11px;color:var(--muted);line-height:1.6;margin-top:3px;}
+  .sim-wrap{margin-top:16px;background:#fbf8f3;border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+  .sim-title{font-size:12px;font-weight:700;color:var(--indigo-900);margin-bottom:8px;}
+  .sim-scroll{overflow-x:auto;}
+  .sim-scroll svg{display:block;width:100%;min-width:300px;height:auto;}
+  .sim-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:8px;}
+  .sim-legend span.item{display:flex;align-items:center;gap:5px;}
+  .sim-key{width:16px;border-top:2px solid;display:inline-block;}
+
+  /* ---------- Dynamic price (customer) ---------- */
+  .price-reason{font-size:11px;padding:2px 7px;border-radius:5px;font-weight:700;}
+  .price-reason.hold{background:var(--success-bg);color:var(--success);}
+  .price-reason.down{background:var(--danger);color:#fff;}
+  .spark-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .spark-row svg{display:block;flex:none;}
+  .spark-note{font-size:11px;color:var(--muted);}
+
+  @media (min-width:700px){
+    .pricing-grid{grid-template-columns:repeat(3,1fr);}
+  }
+
   @media (max-width:600px){
     header.topbar{padding:12px 14px;gap:10px;}
     .brand{font-size:19px;}
@@ -364,20 +400,53 @@
         </div>
 
         <div class="field">
-          <label>値下げスケジュール</label>
-          <div class="discount-grid">
-            <div class="field">
-              <div class="discount-stage">定価（15:00〜17:59）</div>
-              <input type="text" value="100%" disabled>
+          <label>値付けの方法</label>
+          <div class="pricing-mode-switch">
+            <button type="button" class="pmode active" data-pmode="schedule">時間で値下げ</button>
+            <button type="button" class="pmode" data-pmode="dynamic">売れ行きに合わせる</button>
+          </div>
+
+          <div id="scheduleSettings">
+            <div class="discount-grid">
+              <div class="field">
+                <div class="discount-stage">定価（15:00〜17:59）</div>
+                <input type="text" value="100%" disabled>
+              </div>
+              <div class="field">
+                <div class="discount-stage">18時以降</div>
+                <input type="number" id="eveningPct" min="0" max="90" value="20">%
+              </div>
+              <div class="field">
+                <div class="discount-stage">閉店1時間前（19時〜）</div>
+                <input type="number" id="closingPct" min="0" max="90" value="40">%
+              </div>
             </div>
-            <div class="field">
-              <div class="discount-stage">18時以降</div>
-              <input type="number" id="eveningPct" min="0" max="90" value="20">%
+          </div>
+
+          <div id="dynamicSettings" hidden>
+            <div class="pricing-grid">
+              <div class="field">
+                <div class="slider-head"><span>閉店時の最大値引き</span><span class="val" id="maxDiscountVal">40%</span></div>
+                <input type="range" id="maxDiscountPct" min="0" max="70" step="5" value="40">
+                <div class="slider-hint">20:00に近づくほど、この割引率まで少しずつ下がります。</div>
+              </div>
+              <div class="field">
+                <div class="slider-head"><span>売れ行きへの反応</span><span class="val" id="stockSensVal">ふつう</span></div>
+                <input type="range" id="stockSensitivity" min="0" max="100" step="10" value="50">
+                <div class="slider-hint">強くするほど、売れ残っているときは早く下げ、売れているときは値下げを控えます。</div>
+              </div>
+              <div class="field">
+                <div class="slider-head"><span>最低利益率</span><span class="val" id="minMarginVal">10%</span></div>
+                <input type="range" id="minMarginPct" min="0" max="40" step="5" value="10">
+                <div class="slider-hint">仕入れ値に対する下限です。これを下回る価格にはなりません。</div>
+              </div>
             </div>
-            <div class="field">
-              <div class="discount-stage">閉店1時間前（19時〜）</div>
-              <input type="number" id="closingPct" min="0" max="90" value="40">%
-            </div>
+          </div>
+
+          <div class="sim-wrap">
+            <div class="sim-title">本日の価格の動き（予想）</div>
+            <div class="sim-scroll" id="priceSim"></div>
+            <div class="sim-legend" id="simLegend"></div>
           </div>
         </div>
 
@@ -472,6 +541,9 @@ const CUSTOMER_NAMES = ["田中様","佐藤様","鈴木様","高橋様","伊藤�
 const EVENING_TIME=1080;  // 18:00
 const CLOSING_HOUR_TIME=1140; // 19:00 (closing 1h before)
 const CLOSE_TIME=1200; // 20:00
+const OPEN_TIME=900; // 15:00
+const PRICE_STEP=10; // 価格の丸め単位（円）
+const DEFAULT_PRICING = { mode:"schedule", maxDiscountPct:40, stockSensitivity:50, minMarginPct:10 };
 
 /* =========================================================
    STATE
@@ -543,6 +615,7 @@ timeSlider.addEventListener("input", ()=>{
   state.currentTime = Number(timeSlider.value);
   $("#timeLabel").textContent = fmtTime(state.currentTime);
   renderListings();
+  renderPriceSimulation();
 });
 $("#timeLabel").textContent = fmtTime(state.currentTime);
 
@@ -715,6 +788,7 @@ $("#generateBtn").addEventListener("click", async ()=>{
     proposals: clone(result.data.proposals),
     prepOptions: result.data.prepOptions.slice(),
     discount: { eveningPct: 20, closingPct: 40 },
+    pricing: clone(DEFAULT_PRICING),
     fallback: result.source === "fallback"
   };
   renderPreview();
@@ -773,8 +847,10 @@ function renderPreview(){
 
   $("#eveningPct").value = draft.discount.eveningPct;
   $("#closingPct").value = draft.discount.closingPct;
-  $("#eveningPct").oninput = (e)=>{ draft.discount.eveningPct = Number(e.target.value)||0; };
-  $("#closingPct").oninput = (e)=>{ draft.discount.closingPct = Number(e.target.value)||0; };
+  $("#eveningPct").oninput = (e)=>{ draft.discount.eveningPct = Number(e.target.value)||0; renderPriceSimulation(); };
+  $("#closingPct").oninput = (e)=>{ draft.discount.closingPct = Number(e.target.value)||0; renderPriceSimulation(); };
+
+  renderPricingControls();
 }
 
 $("#publishBtn").addEventListener("click", ()=>{
@@ -794,6 +870,7 @@ $("#publishBtn").addEventListener("click", ()=>{
     proposals: draft.proposals,
     prepOptions: draft.prepOptions,
     discount: draft.discount,
+    pricing: clone(draft.pricing),
     published: true
   };
   state.listings.push(listing);
@@ -815,21 +892,98 @@ function resetRegisterForm(){
   $("#uploadStatus").textContent = "";
   $("#uploadStatus").classList.remove("done");
   $("#photoUpload").value = "";
+  renderPriceSimulation();
 }
 
 /* =========================================================
    PRICING
    ========================================================= */
-function currentPct(listing){
-  if(state.currentTime >= CLOSING_HOUR_TIME) return listing.discount.closingPct;
-  if(state.currentTime >= EVENING_TIME) return listing.discount.eveningPct;
+function pricingOf(listing){
+  return listing.pricing || DEFAULT_PRICING;
+}
+function isDynamic(listing){
+  return pricingOf(listing).mode === "dynamic";
+}
+
+/* 開店から閉店までの経過率（0〜1） */
+function timeProgress(t){
+  const span = CLOSE_TIME - OPEN_TIME;
+  if(span <= 0) return 1;
+  return Math.min(1, Math.max(0, (t - OPEN_TIME) / span));
+}
+/* 在庫の残り率（0〜1）。数量0でも0除算しない */
+function remainRatio(listing){
+  if(!listing.qty || listing.qty <= 0) return 0;
+  return Math.min(1, Math.max(0, listing.remainingQty / listing.qty));
+}
+/* 原価割れを防ぐ下限価格 */
+function floorPrice(listing){
+  const p = pricingOf(listing);
+  const cost = Number(listing.costPrice) || 0;
+  const f = Math.ceil(cost * (1 + p.minMarginPct/100) / PRICE_STEP) * PRICE_STEP;
+  return Math.min(listing.sellPrice, f);
+}
+
+/* --- 固定スケジュール方式（従来どおり） --- */
+function schedulePct(listing, t){
+  if(t >= CLOSING_HOUR_TIME) return listing.discount.closingPct;
+  if(t >= EVENING_TIME) return listing.discount.eveningPct;
   return 0;
 }
-function currentPrice(listing){
-  const pct = currentPct(listing);
-  return Math.round(listing.sellPrice * (1 - pct/100));
+function schedulePrice(listing, t){
+  return Math.round(listing.sellPrice * (1 - schedulePct(listing, t)/100));
 }
+
+/* --- ダイナミック方式：時間 × 売れ行き --- */
+/* 想定どおりなら閉店に向けて在庫が減っていく、という基準線からのズレを見る */
+function stockMultiplier(listing, t, ratio){
+  const p = pricingOf(listing);
+  const s = Math.min(1, Math.max(0, p.stockSensitivity/100));
+  const expected = 1 - timeProgress(t);
+  return Math.min(2, Math.max(0, 1 + s * 2 * (ratio - expected)));
+}
+function computeDynamicPrice(listing, t, ratio){
+  const p = pricingOf(listing);
+  const baseDiscount = (p.maxDiscountPct/100) * timeProgress(t);
+  const discount = baseDiscount * stockMultiplier(listing, t, ratio);
+  const raw = listing.sellPrice * (1 - discount);
+  const lo = floorPrice(listing);
+  const clamped = Math.min(listing.sellPrice, Math.max(lo, raw));
+  const rounded = Math.round(clamped / PRICE_STEP) * PRICE_STEP;
+  return Math.min(listing.sellPrice, Math.max(lo, rounded));
+}
+
+/* --- 表示側から使う共通API --- */
+function priceAt(listing, t){
+  return isDynamic(listing)
+    ? computeDynamicPrice(listing, t, remainRatio(listing))
+    : schedulePrice(listing, t);
+}
+function currentPrice(listing){
+  return priceAt(listing, state.currentTime);
+}
+function currentPct(listing){
+  if(!isDynamic(listing)) return schedulePct(listing, state.currentTime);
+  if(!listing.sellPrice) return 0;
+  return Math.max(0, Math.round((1 - currentPrice(listing)/listing.sellPrice) * 100));
+}
+/* ダイナミック時は段階変更がないため「30分後の見込み」を示す */
 function nextDropInfo(listing){
+  if(isDynamic(listing)){
+    if(state.currentTime >= CLOSE_TIME - 30){
+      return { hasNext:false, at:null, label:"本日の最終価格です" };
+    }
+    if(currentPrice(listing) <= floorPrice(listing)){
+      return { hasNext:false, at:null, label:"これ以上は下がりません" };
+    }
+    const at = state.currentTime + 30;
+    const next = priceAt(listing, at);
+    const now = currentPrice(listing);
+    if(next < now){
+      return { hasNext:true, at:at, label:fmtTime(at) + "ごろには¥" + next + "の見込みです" };
+    }
+    return { hasNext:false, at:at, label:"売れ行きが良いため、しばらく据え置きの見込みです" };
+  }
   if(state.currentTime < EVENING_TIME){
     return { hasNext:true, at: EVENING_TIME, label:"18:00に" + listing.discount.eveningPct + "%引きに変わります" };
   }
@@ -837,6 +991,173 @@ function nextDropInfo(listing){
     return { hasNext:true, at: CLOSING_HOUR_TIME, label:"19:00に" + listing.discount.closingPct + "%引きに変わります" };
   }
   return { hasNext:false, at:null, label:"本日の最終価格です" };
+}
+/* 値動きの理由（客モードのバッジ用） */
+function priceReason(listing){
+  if(!isDynamic(listing)) return null;
+  if(state.currentTime <= OPEN_TIME) return { cls:"hold", text:"定価で販売中" };
+  if(currentPrice(listing) <= floorPrice(listing)) return { cls:"down", text:"本日の下限価格です" };
+  const expected = 1 - timeProgress(state.currentTime);
+  const r = remainRatio(listing);
+  if(r < expected - 0.08) return { cls:"hold", text:"残りわずかのため据え置き中" };
+  if(r > expected + 0.08) return { cls:"down", text:"売れ行きに合わせて値下げ中" };
+  return { cls:"hold", text:"予定どおりの売れ行きです" };
+}
+
+/* =========================================================
+   OWNER: pricing controls + simulation
+   ========================================================= */
+const SENS_LABELS = ["反応しない","ごく弱い","弱い","やや弱い","ふつう寄り","ふつう","やや強い","強い","かなり強い","とても強い","最も強い"];
+
+function renderPricingControls(){
+  if(!draft) return;
+  const pr = draft.pricing;
+
+  $all(".pmode").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.pmode === pr.mode);
+    btn.onclick = ()=>{
+      if(!draft) return;
+      draft.pricing.mode = btn.dataset.pmode;
+      renderPricingControls();
+    };
+  });
+  $("#scheduleSettings").hidden = pr.mode !== "schedule";
+  $("#dynamicSettings").hidden = pr.mode !== "dynamic";
+
+  const bind = (id, key, labelId, fmt)=>{
+    const el = $("#" + id);
+    el.value = pr[key];
+    const label = $("#" + labelId);
+    const paint = ()=>{ if(label) label.textContent = fmt(Number(el.value)); };
+    paint();
+    el.oninput = ()=>{
+      if(!draft) return;
+      draft.pricing[key] = Number(el.value) || 0;
+      paint();
+      renderPriceSimulation();
+    };
+  };
+  bind("maxDiscountPct", "maxDiscountPct", "maxDiscountVal", v=>v + "%");
+  bind("stockSensitivity", "stockSensitivity", "stockSensVal", v=>SENS_LABELS[Math.round(v/10)] || "ふつう");
+  bind("minMarginPct", "minMarginPct", "minMarginVal", v=>v + "%");
+
+  renderPriceSimulation();
+}
+
+/* プレビュー中の下書きを listing と同じ形に見立てる */
+function draftAsListing(){
+  return {
+    qty: draft.qty,
+    remainingQty: draft.qty,
+    sellPrice: draft.sellPrice,
+    costPrice: draft.costPrice,
+    discount: draft.discount,
+    pricing: draft.pricing
+  };
+}
+
+function simSeries(listing, ratioFn){
+  const pts = [];
+  for(let t = OPEN_TIME; t <= CLOSE_TIME; t += 5){
+    pts.push({ t:t, price: ratioFn ? computeDynamicPrice(listing, t, ratioFn(t)) : schedulePrice(listing, t) });
+  }
+  return pts;
+}
+
+function renderPriceSimulation(){
+  const host = $("#priceSim");
+  if(!host) return;
+  if(!draft){ host.innerHTML = ""; $("#simLegend").innerHTML = ""; return; }
+
+  const listing = draftAsListing();
+  const dyn = listing.pricing.mode === "dynamic";
+  const series = dyn
+    ? [
+        { name:"想定どおり売れた場合", color:"#254e70", pts: simSeries(listing, t=>1 - timeProgress(t)) },
+        { name:"売れ残っている場合",   color:"#b5562e", pts: simSeries(listing, t=>1 - timeProgress(t) * 0.35) }
+      ]
+    : [ { name:"時間による値下げ", color:"#254e70", pts: simSeries(listing, null) } ];
+
+  const lo = floorPrice(listing);
+  const cost = Number(listing.costPrice) || 0;
+  let minV = Math.min(lo, cost, listing.sellPrice);
+  let maxV = listing.sellPrice;
+  series.forEach(sr=>sr.pts.forEach(pt=>{ minV = Math.min(minV, pt.price); maxV = Math.max(maxV, pt.price); }));
+  const padV = Math.max(20, (maxV - minV) * 0.12);
+  minV = Math.max(0, minV - padV);
+  maxV = maxV + padV;
+  if(maxV - minV < 1) maxV = minV + 1;
+
+  const W = 520, H = 180, L = 48, R = 12, T = 14, B = 28;
+  const x = t => L + (W - L - R) * timeProgress(t);
+  const y = v => T + (H - T - B) * (1 - (v - minV) / (maxV - minV));
+
+  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="本日の価格推移の予想">';
+
+  // 目盛り（価格）
+  for(let i = 0; i <= 3; i++){
+    const v = minV + (maxV - minV) * i / 3;
+    const yy = y(v);
+    svg += '<line x1="' + L + '" y1="' + yy.toFixed(1) + '" x2="' + (W - R) + '" y2="' + yy.toFixed(1) + '" stroke="#d8e0e6" stroke-width="1"/>';
+    svg += '<text x="' + (L - 6) + '" y="' + (yy + 4).toFixed(1) + '" text-anchor="end" font-size="10" fill="#6b7a86">' + Math.round(v / PRICE_STEP) * PRICE_STEP + '</text>';
+  }
+  // 目盛り（時刻）
+  for(let t = OPEN_TIME; t <= CLOSE_TIME; t += 60){
+    svg += '<text x="' + x(t).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="10" fill="#6b7a86">' + fmtTime(t) + '</text>';
+  }
+  // 仕入れ値と下限価格
+  if(cost > minV && cost < maxV){
+    svg += '<line x1="' + L + '" y1="' + y(cost).toFixed(1) + '" x2="' + (W - R) + '" y2="' + y(cost).toFixed(1) + '" stroke="#6b7a86" stroke-width="1" stroke-dasharray="4 3"/>';
+  }
+  if(dyn && lo > minV && lo < maxV){
+    svg += '<line x1="' + L + '" y1="' + y(lo).toFixed(1) + '" x2="' + (W - R) + '" y2="' + y(lo).toFixed(1) + '" stroke="#3f7d5c" stroke-width="1.5" stroke-dasharray="6 3"/>';
+  }
+  // 現在時刻
+  svg += '<line x1="' + x(state.currentTime).toFixed(1) + '" y1="' + T + '" x2="' + x(state.currentTime).toFixed(1) + '" y2="' + (H - B) + '" stroke="#b64545" stroke-width="1" opacity=".55"/>';
+  // 価格の線
+  series.forEach(sr=>{
+    const d = sr.pts.map((pt, i)=>(i === 0 ? "M" : "L") + x(pt.t).toFixed(1) + " " + y(pt.price).toFixed(1)).join(" ");
+    svg += '<path d="' + d + '" fill="none" stroke="' + sr.color + '" stroke-width="2" stroke-linejoin="round"/>';
+  });
+  svg += '</svg>';
+  host.innerHTML = svg;
+
+  const legend = series.map(sr=>'<span class="item"><i class="sim-key" style="border-color:' + sr.color + '"></i>' + sr.name + '</span>');
+  if(cost > 0) legend.push('<span class="item"><i class="sim-key" style="border-color:#6b7a86;border-top-style:dashed"></i>仕入れ値 ¥' + cost + '</span>');
+  if(dyn) legend.push('<span class="item"><i class="sim-key" style="border-color:#3f7d5c;border-top-style:dashed"></i>下限価格 ¥' + lo + '</span>');
+  legend.push('<span class="item"><i class="sim-key" style="border-color:#b64545"></i>現在 ' + fmtTime(state.currentTime) + '</span>');
+  $("#simLegend").innerHTML = legend.join("");
+}
+
+/* 客モードのミニ価格推移。現在までは実際の在庫まで線形に補間し、以降は現状維持で見込む */
+function sparklineSVG(listing){
+  const r = remainRatio(listing);
+  const now = state.currentTime;
+  const pts = [];
+  for(let t = OPEN_TIME; t <= CLOSE_TIME; t += 10){
+    let rr;
+    if(t <= now){
+      const span = now - OPEN_TIME;
+      const k = span <= 0 ? 1 : (t - OPEN_TIME) / span;
+      rr = 1 + (r - 1) * k;
+    } else {
+      rr = r;
+    }
+    pts.push({ t:t, price: computeDynamicPrice(listing, t, rr) });
+  }
+  let minV = Infinity, maxV = -Infinity;
+  pts.forEach(pt=>{ minV = Math.min(minV, pt.price); maxV = Math.max(maxV, pt.price); });
+  if(maxV - minV < 1){ maxV = minV + 1; }
+
+  const W = 104, H = 30, PAD = 3;
+  const x = t => PAD + (W - PAD * 2) * timeProgress(t);
+  const y = v => PAD + (H - PAD * 2) * (1 - (v - minV) / (maxV - minV));
+  const d = pts.map((pt, i)=>(i === 0 ? "M" : "L") + x(pt.t).toFixed(1) + " " + y(pt.price).toFixed(1)).join(" ");
+  const nowPrice = currentPrice(listing);
+  return '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="本日の値動き">'
+    + '<path d="' + d + '" fill="none" stroke="#254e70" stroke-width="1.6" stroke-linejoin="round"/>'
+    + '<circle cx="' + x(now).toFixed(1) + '" cy="' + y(nowPrice).toFixed(1) + '" r="3" fill="#b5562e"/>'
+    + '</svg>';
 }
 
 /* =========================================================
@@ -889,10 +1210,15 @@ function renderListings(){
     if(soldOut){
       priceHtml = '<div class="sold-out">本日分は終了しました</div>';
     } else {
+      const reason = priceReason(listing);
       priceHtml = '<div class="price-row">'
         + '<span class="price-now">¥' + price + '</span>'
         + (pct > 0 ? '<span class="price-orig">¥' + listing.sellPrice + '</span><span class="price-tag">' + pct + '%引き</span>' : '')
+        + (reason ? '<span class="price-reason ' + reason.cls + '">' + reason.text + '</span>' : '')
         + '</div>'
+        + (isDynamic(listing)
+            ? '<div class="spark-row">' + sparklineSVG(listing) + '<span class="spark-note">15:00から20:00までの値動き</span></div>'
+            : '')
         + '<div class="countdown">' + drop.label + '</div>';
     }
 
@@ -976,7 +1302,9 @@ function openReserveModal(listing, prepChoice, pickupTime){
         + '<div class="modal-line"><span>下処理</span><span>' + prepChoice + 'にしておきます</span></div>'
         + '<div class="modal-line"><span>受け取り時刻</span><span>' + fmtTime(pickupTime) + '</span></div>'
         + '<div class="modal-line"><span>現在価格</span><span>¥' + price + '</span></div>'
-        + '<div class="lock-note">この価格で確保されます（以降値下がりしても変更ありません）。先に予約するほど確実に受け取れますが、待てばもっと安くなるかもしれません。</div>'
+        + '<div class="lock-note">' + (isDynamic(listing)
+            ? 'この価格で確保されます。以降値下がりしても、売れ行きによって値上がりしても変わりません。先に予約するほど確実に受け取れますが、待てばもっと安くなるかもしれません。'
+            : 'この価格で確保されます（以降値下がりしても変更ありません）。先に予約するほど確実に受け取れますが、待てばもっと安くなるかもしれません。') + '</div>'
         + '<div class="modal-actions">'
           + '<button type="button" class="btn btn-ghost" id="modalCancel">キャンセル</button>'
           + '<button type="button" class="btn btn-primary" id="modalConfirm">この内容で確定</button>'
