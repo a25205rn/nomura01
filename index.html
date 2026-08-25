@@ -264,6 +264,10 @@
   .res-prep{
     font-size:12px;font-weight:700;background:var(--accent);color:#fff;padding:4px 10px;border-radius:999px;
   }
+  .res-qty{
+    font-size:12px;font-weight:700;color:var(--indigo-900);
+    background:var(--indigo-100);padding:4px 10px;border-radius:999px;white-space:nowrap;
+  }
   .res-num{font-size:11px;color:var(--muted);margin-left:auto;}
   .empty-note{color:var(--muted);font-size:13px;padding:20px 4px;text-align:center;}
 
@@ -303,6 +307,10 @@
   .spark-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
   .spark-row svg{display:block;flex:none;}
   .spark-note{font-size:11px;color:var(--muted);}
+  .qty-select{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .qty-select select{flex:none;min-width:90px;}
+  .qty-left{font-size:11px;color:var(--muted);}
+  .modal-line .total{font-family:var(--font-serif);font-size:18px;font-weight:700;color:var(--accent-dark);}
   .forecast-note{
     font-size:11px;color:var(--muted);line-height:1.6;
     background:var(--indigo-100);padding:6px 9px;border-radius:6px;
@@ -1194,7 +1202,8 @@ function sparklineSVG(listing){
    WASTE BAR
    ========================================================= */
 function updateWasteBar(){
-  const current = Math.max(0, state.wasteBase - state.reservations.length);
+  const reserved = state.reservations.reduce((sum, r)=>sum + (r.qty || 1), 0);
+  const current = Math.max(0, state.wasteBase - reserved);
   $("#wasteBaseNum").textContent = state.wasteBase;
   const curEl = $("#wasteCurrentNum");
   const changed = curEl.textContent !== String(current);
@@ -1262,6 +1271,8 @@ function renderListings(){
         + '<details class="proposals-acc"><summary>調理提案を見る（3案）</summary><div class="proposals-body"></div></details>'
         + (soldOut ? '' :
           '<div class="field prep-radio-wrap"><label>下処理</label><div class="prep-radio-group"></div></div>'
+          + '<div class="field qty-field"><label>数量</label><div class="qty-select"><select class="qty-input"></select>'
+            + '<span class="qty-left">残り ' + listing.remainingQty + ' 尾まで</span></div></div>'
           + '<div class="field pickup-select"><label>受け取り希望時間</label><select></select></div>'
           + '<div class="card-footer"><button type="button" class="btn btn-primary btn-full reserve-btn">取り置きする</button></div>'
         )
@@ -1286,6 +1297,14 @@ function renderListings(){
         prepGroup.appendChild(label);
       });
 
+      const qtySelect = card.querySelector(".qty-input");
+      for(let i = 1; i <= listing.remainingQty; i++){
+        const o = document.createElement("option");
+        o.value = i;
+        o.textContent = i + " 尾";
+        qtySelect.appendChild(o);
+      }
+
       const select = card.querySelector(".pickup-select select");
       const pickupOpts = buildPickupOptions();
       if(pickupOpts.length === 0){
@@ -1304,9 +1323,11 @@ function renderListings(){
       card.querySelector(".reserve-btn").addEventListener("click", ()=>{
         const prepChoice = card.querySelector('input[name="prep-' + listing.id + '"]:checked');
         const pickupVal = select.value;
+        const qty = Number(qtySelect.value) || 1;
         if(!prepChoice){ showToast("下処理を選択してください"); return; }
         if(!pickupVal){ showToast("受け取り希望時間を選択してください"); return; }
-        openReserveModal(listing, prepChoice.value, Number(pickupVal));
+        if(qty > listing.remainingQty){ showToast("残りの数量までで選択してください"); return; }
+        openReserveModal(listing, prepChoice.value, Number(pickupVal), qty);
       });
     }
 
@@ -1321,9 +1342,10 @@ function escapeHtml(s){
 /* =========================================================
    RESERVATION MODAL
    ========================================================= */
-function openReserveModal(listing, prepChoice, pickupTime){
+function openReserveModal(listing, prepChoice, pickupTime, qty){
   const fish = FISH_DATA[listing.fishType];
   const price = currentPrice(listing);
+  const total = price * qty;
   const root = $("#modalRoot");
   root.innerHTML =
     '<div class="modal-overlay" id="modalOverlay">'
@@ -1332,7 +1354,9 @@ function openReserveModal(listing, prepChoice, pickupTime){
         + '<div class="modal-line"><span>魚種</span><span>' + fish.name + '</span></div>'
         + '<div class="modal-line"><span>下処理</span><span>' + prepChoice + 'にしておきます</span></div>'
         + '<div class="modal-line"><span>受け取り時刻</span><span>' + fmtTime(pickupTime) + '</span></div>'
-        + '<div class="modal-line"><span>現在価格</span><span>¥' + price + '</span></div>'
+        + '<div class="modal-line"><span>数量</span><span>' + qty + ' 尾</span></div>'
+        + '<div class="modal-line"><span>現在価格</span><span>¥' + price + ' × ' + qty + ' 尾</span></div>'
+        + '<div class="modal-line"><span>お支払い予定</span><span class="total">¥' + total + '</span></div>'
         + '<div class="lock-note">' + (isDynamic(listing)
             ? 'この価格で確保されます。以降の価格の動きにかかわらず、この金額のままお渡しします。この先の価格は売れ行きによって変わる予測のため、確実に受け取るには、お早めのご予約がおすすめです。'
             : 'この価格で確保されます（以降の値下がりにかかわらず、この金額のままお渡しします）。売り切れの場合もあるため、確実に受け取るには、お早めのご予約がおすすめです。') + '</div>'
@@ -1345,25 +1369,29 @@ function openReserveModal(listing, prepChoice, pickupTime){
 
   $("#modalCancel").addEventListener("click", closeModal);
   $("#modalConfirm").addEventListener("click", ()=>{
-    confirmReservation(listing, prepChoice, pickupTime, price);
+    confirmReservation(listing, prepChoice, pickupTime, price, qty);
   });
 }
 
-function confirmReservation(listing, prepChoice, pickupTime, price){
+function confirmReservation(listing, prepChoice, pickupTime, price, qty){
+  const takeQty = Math.max(1, Math.min(qty, listing.remainingQty));
+  const fish = FISH_DATA[listing.fishType];
   const reservation = {
     id: "R" + (state.reservationSeq),
     number: "#" + String(state.reservationSeq).padStart(4,"0"),
     fishType: listing.fishType,
     prepChoice: prepChoice,
     pickupTime: pickupTime,
+    qty: takeQty,
     lockedPrice: price,
+    lockedTotal: price * takeQty,
     customerName: pick(CUSTOMER_NAMES),
     status: "pending",
     seen: false
   };
   state.reservationSeq++;
   state.reservations.push(reservation);
-  listing.remainingQty = Math.max(0, listing.remainingQty - 1);
+  listing.remainingQty = Math.max(0, listing.remainingQty - takeQty);
 
   if(state.mode === "owner" && state.ownerSub === "reservations"){
     renderReservations();
@@ -1381,6 +1409,7 @@ function confirmReservation(listing, prepChoice, pickupTime, price){
       + '<div class="modal-box done-view">'
         + '<div class="done-msg">取り置きが完了しました</div>'
         + '<div class="res-number">' + reservation.number + '</div>'
+        + '<div class="done-sub">' + fish.name + ' ' + takeQty + '尾・¥' + reservation.lockedTotal + '</div>'
         + '<div class="done-sub">' + fmtTime(pickupTime) + 'に魚太郎でお待ちしています</div>'
         + '<button type="button" class="btn btn-primary btn-full" id="modalClose">閉じる</button>'
       + '</div>'
@@ -1423,6 +1452,7 @@ function renderReservations(){
       '<div class="res-time">' + fmtTime(r.pickupTime) + '</div>'
       + '<div class="res-name">' + r.customerName + '</div>'
       + '<div class="res-fish">' + fish.name + '</div>'
+      + '<div class="res-qty">' + (r.qty || 1) + ' 尾</div>'
       + '<div class="res-prep">' + r.prepChoice + '</div>'
       + '<div class="res-num">' + r.number + '</div>'
       + '<button type="button" class="btn btn-sm ' + (r.status==="ready" ? "btn-secondary" : "btn-primary") + '">'
