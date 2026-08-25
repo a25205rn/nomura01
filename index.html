@@ -438,7 +438,7 @@
               <div class="field">
                 <div class="slider-head"><span>最低利益率</span><span class="val" id="minMarginVal">10%</span></div>
                 <input type="range" id="minMarginPct" min="0" max="40" step="5" value="10">
-                <div class="slider-hint">仕入れ値に対する下限です。これを下回る価格にはなりません。</div>
+                <div class="slider-hint">仕入れ値に対する下限です。この価格を下回らないように調整されます。</div>
               </div>
             </div>
           </div>
@@ -623,7 +623,7 @@ $("#liveModeToggle").addEventListener("change", (e)=>{
   state.aiMode = e.target.checked ? "live" : "demo";
   $("#apiKeyInput").style.display = e.target.checked ? "inline-block" : "none";
   $("#aiModeNote").textContent = e.target.checked
-    ? "ライブモード：Anthropic APIを呼び出します（失敗時は自動でデモ表示）"
+    ? "ライブモード：Anthropic APIを呼び出します（つながらないときは自動でデモ表示）"
     : "デモモード：あらかじめ用意した文章から生成演出をします";
 });
 $("#apiKeyInput").addEventListener("input", (e)=>{ state.apiKey = e.target.value; });
@@ -800,7 +800,7 @@ function renderPreview(){
   badge.textContent = "魚太郎AIが下書きしました";
   badge.classList.remove("edited");
   $("#fallbackNote").hidden = !draft.fallback;
-  $("#fallbackNote").textContent = draft.fallback ? "（ネットに接続できなかったためデモの文章を表示しています）" : "";
+  $("#fallbackNote").textContent = draft.fallback ? "（ネットワークの状況によりデモの文章を表示しています）" : "";
 
   const commentInput = $("#commentInput");
   commentInput.value = draft.ownerComment;
@@ -982,10 +982,10 @@ function priceLabel(at, price, pct){
 function nextDropInfo(listing){
   if(isDynamic(listing)){
     if(state.currentTime >= CLOSE_TIME - 30){
-      return { hasNext:false, at:null, label:"本日の最終価格です" };
+      return { hasNext:false, at:null, label:"本日最後のお値打ち価格です" };
     }
     if(currentPrice(listing) <= floorPrice(listing)){
-      return { hasNext:false, at:null, label:"これ以上は下がりません" };
+      return { hasNext:false, at:null, label:"本日いちばんのお値打ち価格です" };
     }
     const at = state.currentTime + 30;
     const next = priceAt(listing, at);
@@ -993,7 +993,7 @@ function nextDropInfo(listing){
     if(next < now){
       return { hasNext:true, at:at, label:priceLabel(at, next, discountPct(listing, next)) + "になる見込みです" };
     }
-    return { hasNext:false, at:at, label:"売れ行きが良いため、しばらく据え置きの見込みです" };
+    return { hasNext:false, at:at, label:"売れ行きが良いため、しばらくこの価格の見込みです" };
   }
   /* 値下げ幅が0の段階は予告せず、実際に価格が変わる次の段階を案内する */
   const now = currentPrice(listing);
@@ -1005,16 +1005,16 @@ function nextDropInfo(listing){
   }
   if(state.currentTime < CLOSING_HOUR_TIME){
     return { hasNext:false, at:null, label:schedulePct(listing, state.currentTime) === 0
-      ? "本日は定価のままです"
-      : "本日はこの価格のままです" };
+      ? "本日は定価で販売します"
+      : "本日はこの価格で販売します" };
   }
-  return { hasNext:false, at:null, label:"本日の最終価格です" };
+  return { hasNext:false, at:null, label:"本日最後のお値打ち価格です" };
 }
 /* 値動きの理由（客モードのバッジ用） */
 function priceReason(listing){
   if(!isDynamic(listing)) return null;
   if(state.currentTime <= OPEN_TIME) return { cls:"hold", text:"定価で販売中" };
-  if(currentPrice(listing) <= floorPrice(listing)) return { cls:"down", text:"本日の下限価格です" };
+  if(currentPrice(listing) <= floorPrice(listing)) return { cls:"down", text:"本日いちばんのお値打ち価格" };
   const expected = 1 - timeProgress(state.currentTime);
   const r = remainRatio(listing);
   if(r < expected - 0.08) return { cls:"hold", text:"残りわずかのため据え置き中" };
@@ -1210,7 +1210,7 @@ function renderListings(){
   grid.innerHTML = "";
 
   if(state.listings.length === 0){
-    grid.innerHTML = '<div class="empty-note">本日の入荷はまだ登録されていません（店主モードで登録してください）</div>';
+    grid.innerHTML = '<div class="empty-note">本日の入荷はこれから登録します（店主モードで登録できます）</div>';
     return;
   }
 
@@ -1226,7 +1226,7 @@ function renderListings(){
 
     let priceHtml;
     if(soldOut){
-      priceHtml = '<div class="sold-out">本日分は終了しました</div>';
+      priceHtml = '<div class="sold-out">本日分は完売しました</div>';
     } else {
       const reason = priceReason(listing);
       priceHtml = '<div class="price-row">'
@@ -1276,7 +1276,7 @@ function renderListings(){
       const select = card.querySelector(".pickup-select select");
       const pickupOpts = buildPickupOptions();
       if(pickupOpts.length === 0){
-        select.innerHTML = '<option value="">本日の受け取り枠は終了しました</option>';
+        select.innerHTML = '<option value="">本日の受け取り枠は締め切りました</option>';
         select.disabled = true;
         card.querySelector(".reserve-btn").disabled = true;
       } else {
@@ -1321,8 +1321,8 @@ function openReserveModal(listing, prepChoice, pickupTime){
         + '<div class="modal-line"><span>受け取り時刻</span><span>' + fmtTime(pickupTime) + '</span></div>'
         + '<div class="modal-line"><span>現在価格</span><span>¥' + price + '</span></div>'
         + '<div class="lock-note">' + (isDynamic(listing)
-            ? 'この価格で確保されます。以降値下がりしても、売れ行きによって値上がりしても変わりません。先に予約するほど確実に受け取れますが、待てばもっと安くなるかもしれません。'
-            : 'この価格で確保されます（以降値下がりしても変更ありません）。先に予約するほど確実に受け取れますが、待てばもっと安くなるかもしれません。') + '</div>'
+            ? 'この価格で確保されます。以降の価格の動きにかかわらず、この金額のままお渡しします。先に予約するほど確実に受け取れますが、待てばもっとお値打ちになることもあります。'
+            : 'この価格で確保されます（以降の値下がりにかかわらず、この金額のままお渡しします）。先に予約するほど確実に受け取れますが、待てばもっとお値打ちになることもあります。') + '</div>'
         + '<div class="modal-actions">'
           + '<button type="button" class="btn btn-ghost" id="modalCancel">キャンセル</button>'
           + '<button type="button" class="btn btn-primary" id="modalConfirm">この内容で確定</button>'
@@ -1396,7 +1396,7 @@ function renderReservations(){
   const container = $("#reservationsList");
   container.innerHTML = "";
   if(state.reservations.length === 0){
-    container.innerHTML = '<div class="empty-note">まだ予約はありません</div>';
+    container.innerHTML = '<div class="empty-note">予約が入るとここに表示されます</div>';
     return;
   }
   const sorted = state.reservations.slice().sort((a,b)=>a.pickupTime - b.pickupTime);
