@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>今日の魚太郎 — 操作ガイド</title>
+<style>
+  :root{
+    --indigo-900:#122436;
+    --indigo-800:#1a3a55;
+    --indigo-700:#254e70;
+    --indigo-100:#eaf1f6;
+    --paper:#faf7f1;
+    --white:#ffffff;
+    --accent:#b5562e;
+    --text:#1f2d38;
+    --muted:#6b7a86;
+    --border:#d8e0e6;
+    --success:#3f7d5c;
+    --success-bg:#e7f3ec;
+    --danger:#b64545;
+    --font-serif:"Yu Mincho","YuMincho","Hiragino Mincho ProN",serif;
+    --font-sans:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--font-sans);color:var(--text);background:var(--paper);
+    line-height:1.8;-webkit-font-smoothing:antialiased;padding-bottom:60px;
+  }
+  header{
+    background:linear-gradient(135deg,var(--indigo-900),var(--indigo-800) 60%,var(--indigo-700));
+    color:var(--white);padding:26px 20px;
+  }
+  header .inner{max-width:860px;margin:0 auto;}
+  header h1{
+    font-family:var(--font-serif);font-size:26px;letter-spacing:.06em;
+    margin:0 0 4px;font-weight:700;
+  }
+  header p{margin:0;font-size:13px;opacity:.8;letter-spacing:.04em;}
+
+  main{max-width:860px;margin:0 auto;padding:0 20px;}
+  section{margin-top:34px;}
+  h2{
+    font-family:var(--font-serif);font-size:20px;color:var(--indigo-900);
+    margin:0 0 14px;padding-bottom:8px;border-bottom:2px solid var(--indigo-100);
+  }
+  h3{font-size:15px;color:var(--indigo-700);margin:22px 0 8px;}
+  p{margin:0 0 12px;font-size:14px;}
+  ul,ol{margin:0 0 12px;padding-left:1.4em;font-size:14px;}
+  li{margin-bottom:5px;}
+  li::marker{color:var(--muted);}
+
+  .panel{
+    background:var(--white);border:1px solid var(--border);border-radius:12px;
+    padding:18px 20px;margin-bottom:16px;
+  }
+  .panel h3:first-child{margin-top:0;}
+
+  table{
+    width:100%;border-collapse:collapse;font-size:13.5px;margin:0 0 12px;
+    background:var(--white);
+  }
+  th,td{border:1px solid var(--border);padding:9px 11px;text-align:left;vertical-align:top;}
+  th{background:var(--indigo-100);color:var(--indigo-900);font-weight:700;white-space:nowrap;}
+  .scroll{overflow-x:auto;}
+
+  code,.ui{
+    font-family:var(--font-sans);font-size:12.5px;
+    background:var(--indigo-100);color:var(--indigo-900);
+    padding:1px 6px;border-radius:4px;font-weight:600;white-space:nowrap;
+  }
+  .path{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;
+    background:var(--indigo-900);color:#e8eef3;padding:10px 14px;border-radius:8px;
+    overflow-x:auto;margin:0 0 12px;
+  }
+  .note{
+    background:#fbf8f3;border-left:3px solid var(--accent);
+    padding:11px 14px;border-radius:0 8px 8px 0;font-size:13px;margin:0 0 12px;
+  }
+  .note strong{color:var(--accent);}
+  .badge{
+    display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;
+    background:var(--success-bg);color:var(--success);
+  }
+  .badge.down{background:var(--danger);color:#fff;}
+
+  .steps{counter-reset:step;list-style:none;padding-left:0;}
+  .steps li{
+    counter-increment:step;position:relative;padding-left:34px;margin-bottom:11px;
+  }
+  .steps li::before{
+    content:counter(step);position:absolute;left:0;top:2px;
+    width:22px;height:22px;border-radius:50%;background:var(--indigo-700);color:#fff;
+    font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  }
+  footer{
+    max-width:860px;margin:44px auto 0;padding:16px 20px 0;
+    border-top:1px solid var(--border);font-size:12px;color:var(--muted);
+  }
+
+  @media (max-width:600px){
+    header{padding:20px 16px;}
+    header h1{font-size:21px;}
+    main{padding:0 16px;}
+    .panel{padding:15px 16px;}
+    th,td{padding:7px 9px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="inner">
+    <h1>今日の魚太郎 — 操作ガイド</h1>
+    <p>店主モード・客モードの使い方と、値付けの設定方法</p>
+  </div>
+</header>
+
+<main>
+
+<section>
+  <h2>起動する</h2>
+  <p><code>index.html</code> をブラウザで開くだけです。ビルド・サーバー・npm install は不要で、オフラインでも全機能が動きます。</p>
+  <div class="path">uotarou-demo/index.html &nbsp;←&nbsp; ダブルクリック</div>
+  <div class="note"><strong>データは保存されません。</strong>登録した入荷も予約もページを再読み込みすると消えます。発表前のリハーサルは気にせず操作して構いません。</div>
+</section>
+
+<section>
+  <h2>画面の構成</h2>
+  <p>画面上部のヘッダーは、どちらのモードでも常に表示されます。</p>
+  <div class="scroll">
+    <table>
+      <tr><th>店主モード / 客モード</th><td>タブで表示を切り替えます。同じ画面で店主側と客側の両方を見せられます。</td></tr>
+      <tr><th>現在時刻スライダー</th><td>15:00〜20:00 を手で動かします。全カードの価格とカウントダウンが即座に連動し、時間が経つほど値下がりする様子をその場で見せられます。</td></tr>
+      <tr><th>ライブモード</th><td>OFF（既定）は用意された文章を返すデモモード。ON にして Anthropic API キーを入力すると実際に生成します。失敗時は自動でデモモードに戻ります。</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>店主モード</h2>
+
+  <div class="panel">
+    <h3>入荷登録</h3>
+    <ol class="steps">
+      <li>魚種を選ぶ（アジ・サバ・カマス・イサキ・スルメイカ）。写真アップロードは判定ダミーの演出です。</li>
+      <li><span class="ui">数量</span><span class="ui">仕入れ値</span><span class="ui">希望売価</span>を入力する。</li>
+      <li><span class="ui">品書きを作る</span>を押すと、店主の一言・調理提案3案・下処理オプションが生成されます。</li>
+      <li>生成結果をその場で編集する。編集すると表示が「魚太郎AIが下書きしました」から<strong>「魚太郎さんが手を入れました」</strong>に変わります。</li>
+      <li>値付けの方法を設定し（下記参照）、<span class="ui">公開する</span>を押すと客モードに反映されます。</li>
+    </ol>
+    <div class="note">下処理オプションを1つも選ばずに公開しようとすると、警告が出て公開できません。数量0や魚種未選択も同様にその場でエラー表示されます。</div>
+  </div>
+
+  <div class="panel">
+    <h3>予約一覧</h3>
+    <p>客からの取り置きが受け取り時刻順に並びます。下処理の指示は色付きバッジで強調されます。<span class="ui">準備完了</span>で対応済みにでき、未確認の予約はタブに件数バッジが出ます。</p>
+  </div>
+</section>
+
+<section>
+  <h2>値付けの方法</h2>
+  <p>商品ごとに2つの方式から選べます。切り替えるたびに、その日の価格がどう動くかがグラフで確認できます。</p>
+
+  <div class="panel">
+    <h3>時間で値下げ（既定）</h3>
+    <p>従来どおりの固定スケジュールです。3段階で階段状に下がります。</p>
+    <div class="scroll">
+      <table>
+        <tr><th>定価</th><td>15:00〜17:59</td></tr>
+        <tr><th>18時以降</th><td>設定した割引率（既定20%）</td></tr>
+        <tr><th>閉店1時間前</th><td>19時〜。設定した割引率（既定40%）</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>売れ行きに合わせる（ダイナミックプライシング）</h3>
+    <p>時間だけでなく<strong>在庫の減り方</strong>にも連動し、価格が連続的に変わります。「閉店までに一定ペースで捌ける」線を想定とし、そこからのズレで補正します。</p>
+    <ul>
+      <li>想定より<strong>売れていなければ</strong> → 値下げを早める</li>
+      <li>想定より<strong>売れていれば</strong> → 値下げを控える（残りわずかなら据え置き）</li>
+    </ul>
+    <p>調整できるのは次の3つです。</p>
+    <div class="scroll">
+      <table>
+        <tr><th>閉店時の最大値引き</th><td>20:00時点で最大どこまで下げるか（0〜70%）</td></tr>
+        <tr><th>売れ行きへの反応</th><td>上の補正をどれだけ強く掛けるか</td></tr>
+        <tr><th>最低利益率</th><td>仕入れ値に対する下限。<strong>これを下回る価格にはなりません</strong></td></tr>
+      </table>
+    </div>
+    <div class="note">価格は10円単位に丸められます。公開前のグラフには「想定どおり売れた場合」「売れ残っている場合」の2本に加え、仕入れ値と下限価格が破線で表示されるので、<strong>どこまで下がるかを確認してから公開できます</strong>。</div>
+  </div>
+</section>
+
+<section>
+  <h2>客モード</h2>
+
+  <div class="panel">
+    <h3>カードの見方</h3>
+    <div class="scroll">
+      <table>
+        <tr><th>店主の一言</th><td>店主が仕上げた品書き文</td></tr>
+        <tr><th>残り数量</th><td>予約が入るたびに減ります</td></tr>
+        <tr><th>現在価格</th><td>時刻スライダーに連動。値下げ中は定価に取り消し線が付きます</td></tr>
+        <tr><th>値動きの理由</th><td>ダイナミック方式のときだけ表示（<span class="badge">残りわずかのため据え置き中</span> <span class="badge down">売れ行きに合わせて値下げ中</span>）</td></tr>
+        <tr><th>ミニグラフ</th><td>その日の値動きを1本の線で表示。点が現在位置</td></tr>
+        <tr><th>次の値下げ予告</th><td>「18:00に¥384（20%引き）になります」の形式</td></tr>
+      </table>
+    </div>
+    <p>画面上部の固定バーには<strong>本日の廃棄予定</strong>が表示され、予約が入るたびに減っていきます。</p>
+  </div>
+
+  <div class="panel">
+    <h3>取り置きする</h3>
+    <ol class="steps">
+      <li><span class="ui">調理提案を見る</span>をタップして3案を展開する。</li>
+      <li>下処理をラジオボタンで選ぶ（そのまま／三枚おろし／内臓処理／下味）。</li>
+      <li>受け取り希望時間を30分刻みで選ぶ。</li>
+      <li><span class="ui">取り置きする</span>を押し、確認モーダルの内容を確かめて確定する。</li>
+    </ol>
+    <div class="note"><strong>価格は予約が成立した時点で固定されます。</strong>その後に値下がりしても、売れ行きによって値上がりしても、予約済みの金額は変わりません。確認モーダルにもその旨が明示されます。</div>
+  </div>
+</section>
+
+<section>
+  <h2>発表デモの進め方</h2>
+  <ol class="steps">
+    <li><strong>店主モード</strong>でアジを登録し、AIが下書きした品書きを見せる。一言を少し書き換えて「魚太郎さんが手を入れました」に変わることを示す。</li>
+    <li>値付けを<strong>「売れ行きに合わせる」</strong>に切り替え、スライダーを動かしてグラフの形が変わることを見せる。下限価格の破線で「原価は割らない」ことを説明する。</li>
+    <li><strong>客モード</strong>に切り替え、時刻スライダーを15:00から20:00へゆっくり動かして値下がりとカウントダウンを見せる。</li>
+    <li>取り置きを1件入れ、廃棄予定の数字が減ることと、価格が固定される確認モーダルを見せる。</li>
+    <li><strong>店主モード</strong>の予約一覧に戻り、下処理の指示が届いていることを示す。</li>
+  </ol>
+</section>
+
+</main>
+
+<footer>
+  今日の魚太郎 デモアプリ 操作ガイド　/　詳細は README.md、実装手順は docs/dynamic-pricing-ui.md を参照
+</footer>
+
+</body>
+</html>

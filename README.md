@@ -77,6 +77,7 @@
 uotarou-demo/
 ├── index.html   # アプリ本体（このファイルを開くだけで動く）
 ├── docs/
+│   ├── usage.html              # 操作ガイド（ブラウザで開く）
 │   └── dynamic-pricing-ui.md   # ダイナミックプライシング対応UIの実装手順
 └── README.md
 ```
