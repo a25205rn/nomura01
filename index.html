@@ -964,8 +964,19 @@ function currentPrice(listing){
 }
 function currentPct(listing){
   if(!isDynamic(listing)) return schedulePct(listing, state.currentTime);
+  return discountPct(listing, currentPrice(listing));
+}
+/* 「18:00に¥384（20%引き）になります」形式の予告 */
+function dropLabel(listing, at){
+  return priceLabel(at, schedulePrice(listing, at), schedulePct(listing, at)) + "になります";
+}
+/* 売価に対する実効割引率（%） */
+function discountPct(listing, price){
   if(!listing.sellPrice) return 0;
-  return Math.max(0, Math.round((1 - currentPrice(listing)/listing.sellPrice) * 100));
+  return Math.max(0, Math.round((1 - price/listing.sellPrice) * 100));
+}
+function priceLabel(at, price, pct){
+  return fmtTime(at) + "に¥" + price + "（" + pct + "%引き）";
 }
 /* ダイナミック時は段階変更がないため「30分後の見込み」を示す */
 function nextDropInfo(listing){
@@ -980,15 +991,22 @@ function nextDropInfo(listing){
     const next = priceAt(listing, at);
     const now = currentPrice(listing);
     if(next < now){
-      return { hasNext:true, at:at, label:fmtTime(at) + "ごろには¥" + next + "の見込みです" };
+      return { hasNext:true, at:at, label:priceLabel(at, next, discountPct(listing, next)) + "になる見込みです" };
     }
     return { hasNext:false, at:at, label:"売れ行きが良いため、しばらく据え置きの見込みです" };
   }
-  if(state.currentTime < EVENING_TIME){
-    return { hasNext:true, at: EVENING_TIME, label:"18:00に" + listing.discount.eveningPct + "%引きに変わります" };
+  /* 値下げ幅が0の段階は予告せず、実際に価格が変わる次の段階を案内する */
+  const now = currentPrice(listing);
+  const stages = [EVENING_TIME, CLOSING_HOUR_TIME].filter(at=>at > state.currentTime);
+  for(const at of stages){
+    if(schedulePrice(listing, at) < now){
+      return { hasNext:true, at:at, label:dropLabel(listing, at) };
+    }
   }
   if(state.currentTime < CLOSING_HOUR_TIME){
-    return { hasNext:true, at: CLOSING_HOUR_TIME, label:"19:00に" + listing.discount.closingPct + "%引きに変わります" };
+    return { hasNext:false, at:null, label:schedulePct(listing, state.currentTime) === 0
+      ? "本日は定価のままです"
+      : "本日はこの価格のままです" };
   }
   return { hasNext:false, at:null, label:"本日の最終価格です" };
 }
