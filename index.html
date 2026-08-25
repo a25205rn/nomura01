@@ -303,6 +303,11 @@
   .spark-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
   .spark-row svg{display:block;flex:none;}
   .spark-note{font-size:11px;color:var(--muted);}
+  .forecast-note{
+    font-size:11px;color:var(--muted);line-height:1.6;
+    background:var(--indigo-100);padding:6px 9px;border-radius:6px;
+  }
+  .forecast-note strong{color:var(--indigo-700);}
 
   @media (min-width:700px){
     .pricing-grid{grid-template-columns:repeat(3,1fr);}
@@ -968,7 +973,7 @@ function currentPct(listing){
 }
 /* 「18:00に¥384（20%引き）になります」形式の予告 */
 function dropLabel(listing, at){
-  return priceLabel(at, schedulePrice(listing, at), schedulePct(listing, at)) + "になります";
+  return priceLabel(at, schedulePrice(listing, at), schedulePct(listing, at)) + "になる予定です";
 }
 /* 売価に対する実効割引率（%） */
 function discountPct(listing, price){
@@ -991,7 +996,7 @@ function nextDropInfo(listing){
     const next = priceAt(listing, at);
     const now = currentPrice(listing);
     if(next < now){
-      return { hasNext:true, at:at, label:priceLabel(at, next, discountPct(listing, next)) + "になる見込みです" };
+      return { hasNext:true, at:at, label:fmtTime(at) + "ごろは¥" + next + "前後の見込みです" };
     }
     return { hasNext:false, at:at, label:"売れ行きが良いため、しばらくこの価格の見込みです" };
   }
@@ -1010,6 +1015,13 @@ function nextDropInfo(listing){
   }
   return { hasNext:false, at:null, label:"本日最後のお値打ち価格です" };
 }
+/* この先の価格が確定ではないことを伝える注記 */
+function forecastNote(listing){
+  return isDynamic(listing)
+    ? "<strong>この先の価格は予測です。</strong>売れ行きによって変わります。確実に受け取るには、お早めのご予約がおすすめです。"
+    : "<strong>予定の価格です。</strong>売り切れの場合もあるため、確実に受け取るには、お早めのご予約がおすすめです。";
+}
+
 /* 値動きの理由（客モードのバッジ用） */
 function priceReason(listing){
   if(!isDynamic(listing)) return null;
@@ -1235,9 +1247,10 @@ function renderListings(){
         + (reason ? '<span class="price-reason ' + reason.cls + '">' + reason.text + '</span>' : '')
         + '</div>'
         + (isDynamic(listing)
-            ? '<div class="spark-row">' + sparklineSVG(listing) + '<span class="spark-note">15:00から20:00までの値動き</span></div>'
+            ? '<div class="spark-row">' + sparklineSVG(listing) + '<span class="spark-note">値動きの予測（売れ行きにより変わります）</span></div>'
             : '')
-        + '<div class="countdown">' + drop.label + '</div>';
+        + '<div class="countdown">' + drop.label + '</div>'
+        + '<div class="forecast-note">' + forecastNote(listing) + '</div>';
     }
 
     card.innerHTML =
@@ -1321,8 +1334,8 @@ function openReserveModal(listing, prepChoice, pickupTime){
         + '<div class="modal-line"><span>受け取り時刻</span><span>' + fmtTime(pickupTime) + '</span></div>'
         + '<div class="modal-line"><span>現在価格</span><span>¥' + price + '</span></div>'
         + '<div class="lock-note">' + (isDynamic(listing)
-            ? 'この価格で確保されます。以降の価格の動きにかかわらず、この金額のままお渡しします。先に予約するほど確実に受け取れますが、待てばもっとお値打ちになることもあります。'
-            : 'この価格で確保されます（以降の値下がりにかかわらず、この金額のままお渡しします）。先に予約するほど確実に受け取れますが、待てばもっとお値打ちになることもあります。') + '</div>'
+            ? 'この価格で確保されます。以降の価格の動きにかかわらず、この金額のままお渡しします。この先の価格は売れ行きによって変わる予測のため、確実に受け取るには、お早めのご予約がおすすめです。'
+            : 'この価格で確保されます（以降の値下がりにかかわらず、この金額のままお渡しします）。売り切れの場合もあるため、確実に受け取るには、お早めのご予約がおすすめです。') + '</div>'
         + '<div class="modal-actions">'
           + '<button type="button" class="btn btn-ghost" id="modalCancel">キャンセル</button>'
           + '<button type="button" class="btn btn-primary" id="modalConfirm">この内容で確定</button>'
