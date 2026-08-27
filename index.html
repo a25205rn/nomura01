@@ -38,38 +38,29 @@
   /* ---------- Header ---------- */
   header.topbar{
     position:sticky;top:0;z-index:50;
-    background:linear-gradient(135deg,var(--indigo-900),var(--indigo-800) 60%,var(--indigo-700));
-    color:var(--white);
+    background:linear-gradient(180deg,var(--white),var(--paper));
+    color:var(--indigo-900);
     padding:14px 20px;
-    box-shadow:0 2px 10px rgba(18,36,54,.25);
+    border-bottom:1px solid var(--border);
+    box-shadow:0 1px 6px rgba(18,36,54,.08);
     display:flex;flex-wrap:wrap;align-items:center;gap:18px;
   }
   .brand{
-    font-family:var(--font-serif);
-    font-size:22px;letter-spacing:.06em;font-weight:700;
-    white-space:nowrap;
+    display:flex;align-items:center;
     margin-right:4px;
   }
-  .brand small{display:block;font-family:var(--font-sans);font-size:10px;font-weight:400;letter-spacing:.14em;opacity:.75;}
-  .mode-tabs{display:flex;gap:6px;background:rgba(255,255,255,.08);padding:4px;border-radius:8px;}
+  .brand-logo{height:176px;width:auto;display:block;}
+  .mode-tabs{display:flex;gap:6px;background:var(--indigo-100);padding:4px;border-radius:8px;}
   .mode-tabs button{
-    border:none;background:transparent;color:rgba(255,255,255,.75);
+    border:none;background:transparent;color:var(--muted);
     padding:8px 16px;border-radius:6px;font-size:14px;font-weight:600;letter-spacing:.03em;
     transition:background .15s,color .15s;
   }
-  .mode-tabs button.active{background:var(--white);color:var(--indigo-900);}
-  .time-control{display:flex;align-items:center;gap:10px;flex:1;min-width:220px;}
-  .time-control label{font-size:12px;color:rgba(255,255,255,.8);white-space:nowrap;}
-  .time-control #timeLabel{font-family:var(--font-serif);font-size:17px;font-weight:700;color:#ffd9a8;min-width:52px;display:inline-block;}
+  .mode-tabs button.active{background:var(--indigo-900);color:var(--white);}
+  .time-control{display:flex;align-items:center;gap:10px;order:2;flex-basis:100%;min-width:220px;}
+  .time-control label{font-size:12px;color:var(--muted);white-space:nowrap;}
+  .time-control #timeLabel{font-family:var(--font-serif);font-size:17px;font-weight:700;color:var(--accent);min-width:52px;display:inline-block;}
   .time-control input[type=range]{flex:1;accent-color:var(--accent);min-width:100px;}
-  .ai-toggle{display:flex;flex-direction:column;gap:4px;font-size:12px;color:rgba(255,255,255,.85);}
-  .ai-toggle label{display:flex;align-items:center;gap:6px;white-space:nowrap;}
-  .ai-toggle input[type=password]{
-    margin-top:2px;padding:5px 8px;border-radius:5px;border:1px solid rgba(255,255,255,.3);
-    background:rgba(255,255,255,.1);color:#fff;font-size:12px;width:190px;
-  }
-  .ai-toggle input[type=password]::placeholder{color:rgba(255,255,255,.5);}
-  .ai-note{font-size:10px;color:rgba(255,255,255,.55);}
 
   main{max-width:1100px;margin:0 auto;padding:22px 18px 60px;}
 
@@ -161,7 +152,6 @@
     padding:3px 9px;border-radius:999px;font-weight:600;
   }
   .ai-badge.edited{background:var(--success-bg);color:var(--success);}
-  .fallback-note{font-size:11px;color:var(--danger);margin-left:8px;}
 
   .proposal{border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:10px;background:#fdfcfa;}
   .proposal-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
@@ -336,7 +326,7 @@
 
   /* ---------- Waste bar ---------- */
   .waste-bar{
-    position:sticky;top:64px;z-index:40;
+    position:sticky;top:calc(var(--header-h, 150px) + 8px);z-index:40;
     background:var(--indigo-900);color:#fff;
     padding:10px 18px;border-radius:10px;margin-bottom:18px;
     font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
@@ -814,8 +804,8 @@
 
   @media (max-width:600px){
     header.topbar{padding:12px 14px;gap:10px;}
-    .brand{font-size:19px;}
-    .waste-bar{top:96px;font-size:13px;}
+    .brand-logo{height:128px;}
+    .waste-bar{font-size:13px;}
     .modal-box{padding:20px;}
     .res-num{margin-left:0;}
   }
@@ -824,7 +814,7 @@
 <body>
 
 <header class="topbar">
-  <div class="brand">今日の魚太郎<small>SHOTENGAI FISH STAND</small></div>
+  <div class="brand"><img class="brand-logo" src="data:image/png;base64,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" alt="今日の魚太郎"></div>
   <nav class="mode-tabs">
     <button type="button" data-mode="owner" class="tab active">店主モード</button>
     <button type="button" data-mode="customer" class="tab">客モード</button>
@@ -833,11 +823,6 @@
     <label>現在時刻</label>
     <span id="timeLabel">15:00</span>
     <input type="range" id="timeSlider" min="900" max="1200" step="5" value="900">
-  </div>
-  <div class="ai-toggle">
-    <label><input type="checkbox" id="liveModeToggle"> ライブモード（Anthropic API接続）</label>
-    <input type="password" id="apiKeyInput" placeholder="APIキーを入力（sk-ant-...）" style="display:none">
-    <span class="ai-note" id="aiModeNote">デモモード：あらかじめ用意した文章から生成演出をします</span>
   </div>
 </header>
 
@@ -886,7 +871,6 @@
         <h2>生成された品書き</h2>
         <div style="margin-bottom:10px;">
           <span class="ai-badge" id="aiBadge">魚太郎AIが下書きしました</span>
-          <span class="fallback-note" id="fallbackNote" hidden></span>
         </div>
 
         <div class="field">
@@ -1015,9 +999,9 @@
         </div>
       </div>
 
-      <!-- 魚種ごとの登録済み数量 -->
+      <!-- 魚種ごとの入荷登録数量 -->
       <div class="panel" id="registeredStockPanel">
-        <h2>魚種ごとの登録済み数量</h2>
+        <h2>魚種ごとの入荷登録数量</h2>
         <div class="registered-stock-grid" id="registeredStockList"></div>
       </div>
     </div>
@@ -1038,7 +1022,7 @@
             <thead>
               <tr>
                 <th>魚種</th>
-                <th>登録済み数量</th>
+                <th>入荷登録数量</th>
                 <th>売上数量</th>
                 <th>売上高</th>
                 <th>仕入価格合計</th>
@@ -1052,10 +1036,10 @@
       </div>
 
       <h2 style="margin-top:8px;">売上登録</h2>
-      <div id="salesListingsEmpty" class="empty-note" hidden>登録された魚がありません。まずは「入荷登録」から魚を公開してください。</div>
+      <div id="salesListingsEmpty" class="empty-note" hidden>公開された魚がありません。まずは「入荷登録」から魚を公開してください。</div>
       <div id="salesListingsGrid" class="sales-items-grid"></div>
       <div class="sales-action-row" id="salesActionRow">
-        <button type="button" class="btn btn-primary" id="recordSalesBtn" style="min-width:200px; font-size:15px; padding:10px 24px;">登録する</button>
+        <button type="button" class="btn btn-primary" id="recordSalesBtn" style="min-width:200px; font-size:15px; padding:10px 24px;">売上を登録する</button>
       </div>
     </div>
   </section>
@@ -1158,8 +1142,6 @@ const DEFAULT_PRICING = { mode:"schedule", maxDiscountPct:40, stockSensitivity:5
    ========================================================= */
 let state = {
   currentTime: 900,
-  aiMode: "demo",
-  apiKey: "",
   mode: "owner",
   ownerSub: "register",
   listings: [],
@@ -1244,15 +1226,6 @@ timeSlider.addEventListener("input", ()=>{
   }
 });
 $("#timeLabel").textContent = fmtTime(state.currentTime);
-
-$("#liveModeToggle").addEventListener("change", (e)=>{
-  state.aiMode = e.target.checked ? "live" : "demo";
-  $("#apiKeyInput").style.display = e.target.checked ? "inline-block" : "none";
-  $("#aiModeNote").textContent = e.target.checked
-    ? "ライブモード：Anthropic APIを呼び出します（つながらないときは自動でデモ表示）"
-    : "デモモード：あらかじめ用意した文章から生成演出をします";
-});
-$("#apiKeyInput").addEventListener("input", (e)=>{ state.apiKey = e.target.value; });
 
 /* =========================================================
    OWNER: subtabs
@@ -1352,70 +1325,11 @@ function hideLoading(){
   if(ov) ov.remove();
 }
 
-async function callAnthropicAPI(fishType, apiKey){
-  const fishName = FISH_DATA[fishType].name;
-  const prompt = "あなたは商店街にある鮮魚店「魚太郎」の3代目店主です。今日入荷した「"+fishName+"」について、"
-    + "以下のJSON形式のみを出力してください。前置きや説明文は一切含めないでください。\n\n"
-    + '{"ownerComment":"産地・脂のり・目利きコメントを含む、生活感のある一言(80字前後)",'
-    + '"proposals":[{"title":"料理名","desc":"作り方の説明(60〜100字)","quick15":true},'
-    + '{"title":"料理名","desc":"説明","quick15":false},{"title":"料理名","desc":"説明","quick15":false}]}\n\n'
-    + "proposalsのうち1つは「平日夜15分・フライパンのみ」で作れる内容にし、quick15をtrueにしてください。";
-
-  const controller = new AbortController();
-  const timer = setTimeout(()=>controller.abort(), 7000);
-  let res;
-  try{
-    res = await fetch("https://api.anthropic.com/v1/messages", {
-      method:"POST",
-      headers:{
-        "content-type":"application/json",
-        "x-api-key": apiKey,
-        "anthropic-version":"2023-06-01",
-        "anthropic-dangerous-direct-browser-access":"true"
-      },
-      body: JSON.stringify({
-        model:"claude-sonnet-4-5-20250929",
-        max_tokens:700,
-        messages:[{role:"user", content:prompt}]
-      }),
-      signal: controller.signal
-    });
-  } finally {
-    clearTimeout(timer);
-  }
-  if(!res.ok) throw new Error("API error " + res.status);
-  const data = await res.json();
-  const text = (data.content && data.content[0] && data.content[0].text) || "";
-  const m = text.match(/\{[\s\S]*\}/);
-  if(!m) throw new Error("parse error");
-  const parsed = JSON.parse(m[0]);
-  if(!parsed.ownerComment || !Array.isArray(parsed.proposals)) throw new Error("shape error");
-  return {
-    ownerComment: parsed.ownerComment,
-    proposals: parsed.proposals,
-    prepOptions: FISH_DATA[fishType].prepOptions.slice()
-  };
-}
-
 async function generateListingContent(fishType){
   showLoading(pick(LOADING_MESSAGES));
-  if(state.aiMode === "live" && state.apiKey){
-    try{
-      const result = await callAnthropicAPI(fishType, state.apiKey);
-      hideLoading();
-      return { data: result, source:"live" };
-    }catch(err){
-      hideLoading();
-      showLoading(pick(LOADING_MESSAGES));
-      await sleep(500);
-      hideLoading();
-      return { data: clone(FISH_DATA[fishType]), source:"fallback" };
-    }
-  } else {
-    await sleep(800);
-    hideLoading();
-    return { data: clone(FISH_DATA[fishType]), source:"demo" };
-  }
+  await sleep(800);
+  hideLoading();
+  return clone(FISH_DATA[fishType]);
 }
 
 $("#generateBtn").addEventListener("click", async ()=>{
@@ -1435,7 +1349,7 @@ $("#generateBtn").addEventListener("click", async ()=>{
 
   const btn = $("#generateBtn");
   btn.disabled = true;
-  const result = await generateListingContent(selectedFish);
+  const content = await generateListingContent(selectedFish);
   btn.disabled = false;
 
   draft = {
@@ -1443,10 +1357,10 @@ $("#generateBtn").addEventListener("click", async ()=>{
     qty: qty,
     costPrice: Number($("#costInput").value) || 0,
     sellPrice: sellPrice,
-    ownerComment: result.data.ownerComment,
+    ownerComment: content.ownerComment,
     commentEdited: false,
-    proposals: clone(result.data.proposals),
-    prepOptions: result.data.prepOptions.slice(),
+    proposals: clone(content.proposals),
+    prepOptions: content.prepOptions.slice(),
     discount: {
       eveningHour: 18,
       eveningMin: 0,
@@ -1457,8 +1371,7 @@ $("#generateBtn").addEventListener("click", async ()=>{
       closingTime: 1140,
       closingPct: 40
     },
-    pricing: clone(DEFAULT_PRICING),
-    fallback: result.source === "fallback"
+    pricing: clone(DEFAULT_PRICING)
   };
   renderPreview();
 });
@@ -1468,8 +1381,18 @@ function renderPreview(){
   const badge = $("#aiBadge");
   badge.textContent = "魚太郎AIが下書きしました";
   badge.classList.remove("edited");
-  $("#fallbackNote").hidden = !draft.fallback;
-  $("#fallbackNote").textContent = draft.fallback ? "（ネットワークの状況によりデモの文章を表示しています）" : "";
+
+  // 選択された魚種と数量・希望売価を表示
+  const fish = FISH_DATA[draft.fishType];
+  const fishName = fish ? fish.name : "";
+  const iconHost = $("#draftSelectionIcon");
+  if(iconHost) iconHost.innerHTML = fishIconSVG("#1a3a55");
+  const fishLabel = $("#draftSelectionFish");
+  if(fishLabel) fishLabel.textContent = "魚種: " + fishName;
+  const qtyLabel = $("#draftSelectionQty");
+  if(qtyLabel) qtyLabel.textContent = draft.qty;
+  const priceLabel = $("#draftSelectionPrice");
+  if(priceLabel) priceLabel.textContent = fmtPrice(draft.sellPrice);
 
   // 選択された魚種と数量・希望売価を表示
   const fish = FISH_DATA[draft.fishType];
@@ -1589,7 +1512,7 @@ $("#publishBtn").addEventListener("click", ()=>{
     return;
   }
 
-  // 加算処理: 魚種ごとの登録済み数量に数量を加算
+  // 加算処理: 魚種ごとの入荷登録数量に数量を加算
   const addQty = Number(draft.qty) || 0;
   if(state.registeredStock[draft.fishType] !== undefined){
     state.registeredStock[draft.fishType] += addQty;
@@ -2632,6 +2555,17 @@ if(recordSalesBtn){
 /* =========================================================
    INIT
    ========================================================= */
+// ヘッダーの実測高を CSS 変数に反映（廃棄予定バーの sticky 位置に使用）
+(function(){
+  const headerEl = document.querySelector("header.topbar");
+  const syncHeaderHeight = ()=>{
+    document.documentElement.style.setProperty("--header-h", headerEl.offsetHeight + "px");
+  };
+  syncHeaderHeight();
+  if(window.ResizeObserver) new ResizeObserver(syncHeaderHeight).observe(headerEl);
+  window.addEventListener("resize", syncHeaderHeight);
+})();
+
 updateWasteBar();
 renderRegisteredStock();
 renderSalesSummary();
